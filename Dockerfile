@@ -13,6 +13,8 @@ COPY . .
 
 RUN composer install --no-dev --optimize-autoloader --no-interaction --prefer-dist
 
+RUN chmod +x /var/www/html/start.sh
+
 EXPOSE 10000
 
-CMD ["sh", "-c", "php -S 0.0.0.0:${PORT:-10000} -t public"]
+CMD ["/var/www/html/start.sh"]
