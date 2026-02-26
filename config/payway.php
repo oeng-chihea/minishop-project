@@ -10,12 +10,13 @@ return [
 
     'merchant_id'   => env('ABA_MERCHANT_ID'),
     'api_key'       => env('ABA_API_KEY'),
+    'environment'   => env('ABA_PAYWAY_ENV', 'sandbox'),
     'api_key_valid_until' => env('ABA_API_KEY_VALID_UNTIL'),
     'checkout_url'  => env('ABA_PAYWAY_CHECKOUT_URL', 'https://checkout-sandbox.payway.com.kh/api/payment-gateway/v1/payments/purchase'),
     'api_url'       => env('ABA_PAYWAY_API_URL', 'https://checkout-sandbox.payway.com.kh/api/payment-gateway/v1/payments/purchase'),
     'currency'      => env('ABA_CURRENCY', 'USD'),
     'type'          => env('ABA_TRANSACTION_TYPE', 'purchase'),
-    'payment_option'=> env('ABA_PAYMENT_OPTION', ''),
+    'payment_option'=> env('ABA_PAYMENT_OPTION', 'abapay'),
     'skip_success_page' => env('ABA_SKIP_SUCCESS_PAGE', '1'),
     'lifetime'      => env('ABA_PAYMENT_LIFETIME', '30'),
 

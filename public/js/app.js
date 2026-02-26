@@ -22553,6 +22553,9 @@ function _toPrimitive(t, r) { if ("object" != _typeof(t) || !t) return t; var e 
     var clearCart = function clearCart() {
       cart.value = [];
     };
+    var isMobileDevice = function isMobileDevice() {
+      return /Android|iPhone|iPad|iPod|Mobile/i.test(window.navigator.userAgent);
+    };
     var openQrFallback = function openQrFallback(checkoutData) {
       if (!(checkoutData !== null && checkoutData !== void 0 && checkoutData.qrImage)) {
         return false;
@@ -22567,7 +22570,7 @@ function _toPrimitive(t, r) { if ("object" != _typeof(t) || !t) return t; var e 
     };
     var checkoutWithAba = /*#__PURE__*/function () {
       var _ref2 = _asyncToGenerator(/*#__PURE__*/_regenerator().m(function _callee() {
-        var items, _yield$window$axios$p, data, deepLink, hasQr, _err$response, _t;
+        var items, _yield$window$axios$p, data, deepLink, webCheckoutUrl, hasQr, isSandbox, onMobile, _err$response, _t;
         return _regenerator().w(function (_context) {
           while (1) switch (_context.p = _context.n) {
             case 0:
@@ -22596,10 +22599,22 @@ function _toPrimitive(t, r) { if ("object" != _typeof(t) || !t) return t; var e 
               _yield$window$axios$p = _context.v;
               data = _yield$window$axios$p.data;
               deepLink = (data === null || data === void 0 ? void 0 : data.abapay_deeplink) || '';
+              webCheckoutUrl = (data === null || data === void 0 ? void 0 : data.checkout_url) || '';
               hasQr = !!(data !== null && data !== void 0 && data.qrImage);
+              isSandbox = ((data === null || data === void 0 ? void 0 : data.environment) || '').toLowerCase() === 'sandbox';
+              onMobile = isMobileDevice();
               checkoutLoading.value = false;
-              if (!deepLink) {
+
+              // 1. Always prefer the hosted web checkout URL (works on every device).
+              if (!(webCheckoutUrl && /^https?:\/\//i.test(webCheckoutUrl))) {
                 _context.n = 4;
+                break;
+              }
+              window.location.href = webCheckoutUrl;
+              return _context.a(2);
+            case 4:
+              if (!(onMobile && deepLink)) {
+                _context.n = 5;
                 break;
               }
               window.location.href = deepLink;
@@ -22607,31 +22622,31 @@ function _toPrimitive(t, r) { if ("object" != _typeof(t) || !t) return t; var e 
                 setTimeout(function () {
                   if (document.visibilityState === 'visible') {
                     openQrFallback(data);
-                    checkoutError.value = 'If ABA app did not open, use the QR page to complete payment.';
+                    checkoutError.value = isSandbox ? 'Sandbox payment opened. If ABA app shows "transaction not found", test with the sandbox-compatible ABA environment.' : 'If ABA app did not open, use the QR page to complete payment.';
                   }
                 }, 1400);
               }
               return _context.a(2);
-            case 4:
+            case 5:
               if (!(hasQr && openQrFallback(data))) {
-                _context.n = 5;
+                _context.n = 6;
                 break;
               }
-              checkoutError.value = 'ABA app deep link is unavailable on this device. Use the QR page to pay.';
+              checkoutError.value = isSandbox ? 'Scan the QR code in your ABA Mobile app to pay. (Sandbox mode)' : 'Scan the QR code in your ABA Mobile app to pay.';
               return _context.a(2);
-            case 5:
-              checkoutError.value = 'Could not open ABA checkout. Please try again.';
-              _context.n = 7;
-              break;
             case 6:
-              _context.p = 6;
+              checkoutError.value = 'Could not open ABA checkout. Please try again.';
+              _context.n = 8;
+              break;
+            case 7:
+              _context.p = 7;
               _t = _context.v;
               checkoutLoading.value = false;
               checkoutError.value = (_t === null || _t === void 0 || (_err$response = _t.response) === null || _err$response === void 0 || (_err$response = _err$response.data) === null || _err$response === void 0 ? void 0 : _err$response.message) || 'Could not initiate checkout. Please try again.';
-            case 7:
+            case 8:
               return _context.a(2);
           }
-        }, _callee, null, [[2, 6]]);
+        }, _callee, null, [[2, 7]]);
       }));
       return function checkoutWithAba() {
         return _ref2.apply(this, arguments);
@@ -22659,6 +22674,7 @@ function _toPrimitive(t, r) { if ("object" != _typeof(t) || !t) return t; var e 
       addOne: addOne,
       removeItem: removeItem,
       clearCart: clearCart,
+      isMobileDevice: isMobileDevice,
       openQrFallback: openQrFallback,
       checkoutWithAba: checkoutWithAba,
       totalItems: totalItems,

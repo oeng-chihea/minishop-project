@@ -162,6 +162,8 @@ const clearCart = () => {
     cart.value = [];
 };
 
+const isMobileDevice = () => /Android|iPhone|iPad|iPod|Mobile/i.test(window.navigator.userAgent);
+
 const openQrFallback = (checkoutData) => {
     if (!checkoutData?.qrImage) {
         return false;
@@ -221,19 +223,31 @@ const checkoutWithAba = async () => {
 
         const { data } = await window.axios.post('/api/checkout', { items });
 
-        const deepLink = data?.abapay_deeplink || '';
-        const hasQr = !!data?.qrImage;
+        const deepLink       = data?.abapay_deeplink || '';
+        const webCheckoutUrl = data?.checkout_url   || '';
+        const hasQr          = !!(data?.qrImage);
+        const isSandbox      = (data?.environment || '').toLowerCase() === 'sandbox';
+        const onMobile       = isMobileDevice();
 
         checkoutLoading.value = false;
 
-        if (deepLink) {
+        // 1. Always prefer the hosted web checkout URL (works on every device).
+        if (webCheckoutUrl && /^https?:\/\//i.test(webCheckoutUrl)) {
+            window.location.href = webCheckoutUrl;
+            return;
+        }
+
+        // 2. Real mobile device → try ABA app deeplink, fall back to QR popup.
+        if (onMobile && deepLink) {
             window.location.href = deepLink;
 
             if (hasQr) {
                 setTimeout(() => {
                     if (document.visibilityState === 'visible') {
                         openQrFallback(data);
-                        checkoutError.value = 'If ABA app did not open, use the QR page to complete payment.';
+                        checkoutError.value = isSandbox
+                            ? 'Sandbox payment opened. If ABA app shows "transaction not found", test with the sandbox-compatible ABA environment.'
+                            : 'If ABA app did not open, use the QR page to complete payment.';
                     }
                 }, 1400);
             }
@@ -241,8 +255,12 @@ const checkoutWithAba = async () => {
             return;
         }
 
+        // 3. Desktop browser (or mobile without deeplink) → show QR popup directly.
+        //    Never attempt abamobilebank:// on desktop – browsers reject the scheme.
         if (hasQr && openQrFallback(data)) {
-            checkoutError.value = 'ABA app deep link is unavailable on this device. Use the QR page to pay.';
+            checkoutError.value = isSandbox
+                ? 'Scan the QR code in your ABA Mobile app to pay. (Sandbox mode)'
+                : 'Scan the QR code in your ABA Mobile app to pay.';
             return;
         }
 

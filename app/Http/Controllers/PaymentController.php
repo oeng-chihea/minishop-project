@@ -26,6 +26,7 @@ class PaymentController extends Controller
 
         $merchantId  = (string) config('payway.merchant_id');
         $apiKey      = (string) config('payway.api_key');
+        $environment = strtolower((string) config('payway.environment', 'sandbox'));
         $apiKeyValidUntil = (string) config('payway.api_key_valid_until', '');
         $currency    = (string) config('payway.currency');
         $paymentOption = (string) config('payway.payment_option', '');
@@ -50,6 +51,12 @@ class PaymentController extends Controller
 
         if (!str_contains($checkoutUrl, '/api/payment-gateway/v1/payments/purchase')) {
             $checkoutUrl = (string) config('payway.api_url', $checkoutUrl);
+        }
+
+        if ($environment === 'production' && str_contains(strtolower($checkoutUrl), 'sandbox')) {
+            return response()->json([
+                'message' => 'Production mode is enabled but ABA checkout URL points to sandbox. Please update ABA_PAYWAY_CHECKOUT_URL / ABA_PAYWAY_API_URL to production URL.',
+            ], 422);
         }
 
         if ($merchantId === '' || $apiKey === '') {
@@ -166,11 +173,43 @@ class PaymentController extends Controller
                 ->post($checkoutUrl, $payload);
 
             $abaBody = $abaResponse->json();
+            $abaText = $abaResponse->body();
 
             if (!$abaResponse->successful() || !is_array($abaBody)) {
+                $parsedHtmlCheckout = $this->parseCheckoutHtmlResponse($abaText, $checkoutUrl);
+
+                if ($abaResponse->successful() && $parsedHtmlCheckout !== null) {
+                    $statusCode = (string) ($parsedHtmlCheckout['status_code'] ?? '');
+                    $statusMessage = (string) ($parsedHtmlCheckout['status_message'] ?? 'Unable to initialize ABA checkout.');
+
+                    if ($statusCode !== '' && $statusCode !== '0' && $statusCode !== '00') {
+                        return response()->json([
+                            'message' => "ABA PayWay rejected this request: {$statusMessage} (code {$statusCode}). Please verify production merchant profile/credentials with ABA.",
+                            'aba_status_code' => $statusCode,
+                        ], 422);
+                    }
+
+                    return response()->json([
+                        'status' => [
+                            'code' => $statusCode,
+                            'message' => $statusMessage,
+                        ],
+                        'description' => 'checkout initialized',
+                        'environment' => $environment,
+                        'tran_id' => $tranId,
+                        'amount' => $amount,
+                        'checkout_url' => $parsedHtmlCheckout['checkout_url'] ?? '',
+                        'abapay_deeplink' => '',
+                        'qrString' => '',
+                        'qrImage' => '',
+                        'app_store' => '',
+                        'play_store' => '',
+                    ]);
+                }
+
                 Log::error('PayWay checkout API call failed', [
                     'http_status' => $abaResponse->status(),
-                    'response' => $abaResponse->body(),
+                    'response' => $abaText,
                     'tran_id' => $tranId,
                 ]);
 
@@ -197,11 +236,13 @@ class PaymentController extends Controller
             return response()->json([
                 'status'           => data_get($abaBody, 'status'),
                 'description'      => data_get($abaBody, 'description'),
+                'environment'      => $environment,
                 'tran_id'          => $tranId,
                 'amount'           => $amount,
                 'abapay_deeplink'  => data_get($abaBody, 'abapay_deeplink', ''),
                 'qrString'         => data_get($abaBody, 'qrString', ''),
                 'qrImage'          => data_get($abaBody, 'qrImage', ''),
+                'checkout_url'     => data_get($abaBody, 'checkout_url', ''),
                 'app_store'        => data_get($abaBody, 'app_store', ''),
                 'play_store'       => data_get($abaBody, 'play_store', ''),
             ]);
@@ -215,6 +256,45 @@ class PaymentController extends Controller
                 'message' => 'Checkout failed while contacting ABA PayWay. Please try again.',
             ], 502);
         }
+    }
+
+    private function parseCheckoutHtmlResponse(string $html, string $baseCheckoutUrl): ?array
+    {
+        if ($html === '') {
+            return null;
+        }
+
+        if (!preg_match('#/checkout/([A-Za-z0-9\-_]+)#', $html, $matches)) {
+            return null;
+        }
+
+        $token = $matches[1] ?? '';
+
+        if ($token === '') {
+            return null;
+        }
+
+        $normalizedToken = strtr($token, '-_', '+/');
+        $padding = strlen($normalizedToken) % 4;
+        if ($padding > 0) {
+            $normalizedToken .= str_repeat('=', 4 - $padding);
+        }
+
+        $decodedPayload = base64_decode($normalizedToken, true);
+        $decodedJson = is_string($decodedPayload) ? json_decode($decodedPayload, true) : null;
+
+        $statusCode = data_get($decodedJson, 'status.code');
+        $statusMessage = data_get($decodedJson, 'status.message');
+
+        $checkoutOrigin = parse_url($baseCheckoutUrl, PHP_URL_SCHEME)
+            . '://'
+            . parse_url($baseCheckoutUrl, PHP_URL_HOST);
+
+        return [
+            'checkout_url' => $checkoutOrigin . '/checkout/' . $token,
+            'status_code' => is_scalar($statusCode) ? (string) $statusCode : '',
+            'status_message' => is_scalar($statusMessage) ? (string) $statusMessage : 'Unable to initialize ABA checkout.',
+        ];
     }
 
     /**
