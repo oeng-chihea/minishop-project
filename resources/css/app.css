@@ -3,23 +3,30 @@
 }
 
 :root {
-	--color-bg: #f5f6f7;
-	--color-surface: #ffffff;
-	--color-surface-soft: #eef1f4;
+	--color-bg: #eef3f8;
+	--color-surface: #f9fbff;
+	--color-surface-soft: #e8eef6;
 	--color-text: #0f172a;
 	--color-muted: #5b6474;
-	--color-line: #d9dee5;
-	--color-primary: #1f3a5f;
-	--color-primary-strong: #162a45;
-	--color-accent: #8a5c32;
+	--color-line: #cfdae7;
+	--color-primary: #2f4f7f;
+	--color-primary-strong: #233d62;
+	--color-accent: #557fb0;
 	--shadow-card: 0 18px 30px rgba(17, 24, 39, 0.08);
 	--shadow-hero: 0 28px 42px rgba(17, 24, 39, 0.18);
+}
+
+html {
+	scroll-behavior: smooth;
 }
 
 body {
 	margin: 0;
 	font-family: "Manrope", "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-	background: var(--color-bg);
+	background:
+		radial-gradient(circle at 12% 2%, rgba(85, 127, 176, 0.08), transparent 40%),
+		radial-gradient(circle at 90% 0%, rgba(47, 79, 127, 0.08), transparent 42%),
+		var(--color-bg);
 	color: var(--color-text);
 	text-rendering: geometricPrecision;
 	line-height: 1.45;

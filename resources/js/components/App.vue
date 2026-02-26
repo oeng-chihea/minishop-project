@@ -2,8 +2,8 @@
     <div>
         <SiteHeader />
         <HeroSection />
-        <CollectionsSection />
-        <ValueStrip />
+        <CollectionsSection id="collections" />
+        <ValueStrip id="values" />
 
         <main class="container main-single">
             <ProductGrid :products="products" @add="addToCart" />
@@ -44,7 +44,7 @@
             </article>
         </section>
 
-        <NewsletterSection />
+        <NewsletterSection id="newsletter" />
     </div>
 </template>
 
@@ -162,6 +162,47 @@ const clearCart = () => {
     cart.value = [];
 };
 
+const openQrFallback = (checkoutData) => {
+    if (!checkoutData?.qrImage) {
+        return false;
+    }
+
+    const popup = window.open('', '_blank');
+
+    if (!popup) {
+        return false;
+    }
+
+    popup.document.write(`
+        <!doctype html>
+        <html lang="en">
+        <head>
+            <meta charset="utf-8" />
+            <meta name="viewport" content="width=device-width,initial-scale=1" />
+            <title>ABA PayWay Checkout</title>
+            <style>
+                body{font-family:Segoe UI,Roboto,Arial,sans-serif;background:#f5f8fc;color:#10233f;margin:0;padding:24px;text-align:center}
+                .card{max-width:440px;margin:0 auto;background:#fff;border:1px solid #d6deea;padding:20px;border-radius:8px}
+                img{max-width:100%;height:auto;border:1px solid #d6deea}
+                a{display:inline-block;margin-top:14px;padding:10px 14px;background:#2f4f7f;color:#fff;text-decoration:none;border-radius:4px;font-weight:600}
+                p{margin:8px 0;color:#4a596d}
+            </style>
+        </head>
+        <body>
+            <div class="card">
+                <h2>Complete payment with ABA</h2>
+                <p>Scan this QR in ABA Mobile app to pay.</p>
+                <img src="${checkoutData.qrImage}" alt="ABA payment QR" />
+                ${checkoutData.abapay_deeplink ? `<a href="${checkoutData.abapay_deeplink}">Open ABA App</a>` : ''}
+            </div>
+        </body>
+        </html>
+    `);
+    popup.document.close();
+
+    return true;
+};
+
 const checkoutWithAba = async () => {
     if (!cart.value.length || checkoutLoading.value) {
         return;
@@ -180,27 +221,32 @@ const checkoutWithAba = async () => {
 
         const { data } = await window.axios.post('/api/checkout', { items });
 
-        // Build a hidden form and auto-submit it to ABA PayWay checkout page
-        const form = document.createElement('form');
-        form.method = 'POST';
-        form.action = data.checkout_url;
+        const deepLink = data?.abapay_deeplink || '';
+        const hasQr = !!data?.qrImage;
 
-        const fields = [
-            'merchant_id', 'tran_id', 'amount', 'items', 'currency',
-            'type', 'payment_option', 'req_time', 'return_url', 'cancel_url',
-            'continue_success_url', 'skip_success_page', 'lifetime', 'hash',
-        ];
+        checkoutLoading.value = false;
 
-        fields.forEach((key) => {
-            const input = document.createElement('input');
-            input.type  = 'hidden';
-            input.name  = key;
-            input.value = data[key];
-            form.appendChild(input);
-        });
+        if (deepLink) {
+            window.location.href = deepLink;
 
-        document.body.appendChild(form);
-        form.submit();
+            if (hasQr) {
+                setTimeout(() => {
+                    if (document.visibilityState === 'visible') {
+                        openQrFallback(data);
+                        checkoutError.value = 'If ABA app did not open, use the QR page to complete payment.';
+                    }
+                }, 1400);
+            }
+
+            return;
+        }
+
+        if (hasQr && openQrFallback(data)) {
+            checkoutError.value = 'ABA app deep link is unavailable on this device. Use the QR page to pay.';
+            return;
+        }
+
+        checkoutError.value = 'Could not open ABA checkout. Please try again.';
 
     } catch (err) {
         checkoutLoading.value = false;

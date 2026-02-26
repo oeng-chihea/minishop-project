@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
 
@@ -12,7 +13,7 @@ class PaymentController extends Controller
     /**
      * Initiate an ABA PayWay checkout session.
      * Called by Vue frontend (POST /api/checkout).
-     * Returns the signed form fields so the browser can self-submit directly to ABA.
+     * Performs server-to-server request to ABA and returns checkout payload (deeplink/QR).
      */
     public function initiate(Request $request)
     {
@@ -141,8 +142,7 @@ class PaymentController extends Controller
             'checkout_url' => $checkoutUrl,
         ]);
 
-        return response()->json([
-            'checkout_url'         => $checkoutUrl,
+        $payload = [
             'merchant_id'          => $merchantId,
             'tran_id'              => $tranId,
             'amount'               => $amount,
@@ -157,7 +157,64 @@ class PaymentController extends Controller
             'skip_success_page'    => $skipSuccessPage,
             'lifetime'             => $lifetime,
             'hash'                 => $hash,
-        ]);
+        ];
+
+        try {
+            $abaResponse = Http::asForm()
+                ->acceptJson()
+                ->timeout(30)
+                ->post($checkoutUrl, $payload);
+
+            $abaBody = $abaResponse->json();
+
+            if (!$abaResponse->successful() || !is_array($abaBody)) {
+                Log::error('PayWay checkout API call failed', [
+                    'http_status' => $abaResponse->status(),
+                    'response' => $abaResponse->body(),
+                    'tran_id' => $tranId,
+                ]);
+
+                return response()->json([
+                    'message' => 'Could not connect to ABA PayWay checkout service. Please try again.',
+                ], 502);
+            }
+
+            $statusCode = (string) data_get($abaBody, 'status.code', '');
+
+            if ($statusCode !== '00') {
+                Log::warning('PayWay checkout API returned failure', [
+                    'tran_id' => $tranId,
+                    'status_code' => $statusCode,
+                    'response' => $abaBody,
+                ]);
+
+                return response()->json([
+                    'message' => (string) data_get($abaBody, 'status.message', 'ABA payment request was not accepted.'),
+                    'aba_response' => $abaBody,
+                ], 422);
+            }
+
+            return response()->json([
+                'status'           => data_get($abaBody, 'status'),
+                'description'      => data_get($abaBody, 'description'),
+                'tran_id'          => $tranId,
+                'amount'           => $amount,
+                'abapay_deeplink'  => data_get($abaBody, 'abapay_deeplink', ''),
+                'qrString'         => data_get($abaBody, 'qrString', ''),
+                'qrImage'          => data_get($abaBody, 'qrImage', ''),
+                'app_store'        => data_get($abaBody, 'app_store', ''),
+                'play_store'       => data_get($abaBody, 'play_store', ''),
+            ]);
+        } catch (\Throwable $e) {
+            Log::error('PayWay checkout API exception', [
+                'tran_id' => $tranId,
+                'message' => $e->getMessage(),
+            ]);
+
+            return response()->json([
+                'message' => 'Checkout failed while contacting ABA PayWay. Please try again.',
+            ], 502);
+        }
     }
 
     /**

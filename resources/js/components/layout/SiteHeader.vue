@@ -2,23 +2,23 @@
     <header>
         <div class="promo-bar">
             Free shipping over $100 • New arrivals are live now
-            <a href="#shop">Shop now</a>
+            <a href="#shop" @click="scrollToSection($event, 'shop')">Shop now</a>
         </div>
 
         <div class="site-header">
             <div class="container header-inner">
                 <nav class="left-nav">
-                    <a href="#shop">Men</a>
-                    <a href="#shop">Women</a>
-                    <a href="#shop">Kids</a>
-                    <a href="#shop">Sale</a>
+                    <a href="#shop" @click="scrollToSection($event, 'shop')">Men</a>
+                    <a href="#collections" @click="scrollToSection($event, 'collections')">Women</a>
+                    <a href="#values" @click="scrollToSection($event, 'values')">Kids</a>
+                    <a href="#newsletter" @click="scrollToSection($event, 'newsletter')">Sale</a>
                 </nav>
 
                 <a href="#" class="brand">NovaStore</a>
 
                 <nav class="right-nav">
-                    <a href="#why-us">Sustainability</a>
-                    <a href="#why-us">Stores</a>
+                    <a href="#why-us" @click="scrollToSection($event, 'why-us')">Sustainability</a>
+                    <a href="#why-us" @click="scrollToSection($event, 'why-us')">Stores</a>
                     <button type="button" aria-label="Search">⌕</button>
                     <button type="button" aria-label="Cart">🛒</button>
                 </nav>
@@ -27,9 +27,30 @@
     </header>
 </template>
 
+<script setup>
+const scrollToSection = (event, sectionId) => {
+    event.preventDefault();
+
+    const target = document.getElementById(sectionId);
+
+    if (!target) {
+        return;
+    }
+
+    const stickyHeader = document.querySelector('.site-header');
+    const headerOffset = stickyHeader ? stickyHeader.offsetHeight + 10 : 82;
+    const targetTop = target.getBoundingClientRect().top + window.pageYOffset - headerOffset;
+
+    window.scrollTo({
+        top: targetTop,
+        behavior: 'smooth'
+    });
+};
+</script>
+
 <style scoped>
 .promo-bar {
-    background: var(--color-accent);
+    background: var(--color-primary);
     color: #fff;
     text-align: center;
     font-size: 12px;
@@ -39,7 +60,7 @@
 }
 
 .promo-bar a {
-    color: #fff;
+    color: #e6eefb;
     margin-left: 6px;
 }
 
