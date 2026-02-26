@@ -1,0 +1,65 @@
+* {
+	box-sizing: border-box;
+}
+
+:root {
+	--color-bg: #f5f6f7;
+	--color-surface: #ffffff;
+	--color-surface-soft: #eef1f4;
+	--color-text: #0f172a;
+	--color-muted: #5b6474;
+	--color-line: #d9dee5;
+	--color-primary: #1f3a5f;
+	--color-primary-strong: #162a45;
+	--color-accent: #8a5c32;
+	--shadow-card: 0 18px 30px rgba(17, 24, 39, 0.08);
+	--shadow-hero: 0 28px 42px rgba(17, 24, 39, 0.18);
+}
+
+body {
+	margin: 0;
+	font-family: "Manrope", "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+	background: var(--color-bg);
+	color: var(--color-text);
+	text-rendering: geometricPrecision;
+	line-height: 1.45;
+}
+
+a,
+button {
+	transition: all 0.25s ease;
+}
+
+a:hover,
+button:hover {
+	filter: brightness(0.97);
+}
+
+img {
+	display: block;
+	max-width: 100%;
+}
+
+.fade-in-up {
+	animation: fadeInUp 0.7s ease both;
+}
+
+.scale-on-hover {
+	transition: transform 0.35s ease;
+}
+
+.scale-on-hover:hover {
+	transform: translateY(-2px) scale(1.01);
+}
+
+@keyframes fadeInUp {
+	from {
+		opacity: 0;
+		transform: translateY(16px);
+	}
+	to {
+		opacity: 1;
+		transform: translateY(0);
+	}
+}
+
