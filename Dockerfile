@@ -11,10 +11,7 @@ COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
 
 COPY . .
 
-RUN composer install --no-dev --optimize-autoloader --no-interaction --prefer-dist \
-    && php artisan config:cache \
-    && php artisan route:cache \
-    && php artisan view:cache
+RUN composer install --no-dev --optimize-autoloader --no-interaction --prefer-dist
 
 EXPOSE 10000
 
