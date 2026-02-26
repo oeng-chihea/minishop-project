@@ -3,19 +3,18 @@ set -e
 
 echo "Starting Laravel service..."
 
-max_attempts=20
-attempt=1
+if php artisan migrate --force --no-interaction; then
+  echo "Migrations completed."
+else
+  echo "Migration failed."
 
-until php artisan migrate --force; do
-  if [ "$attempt" -ge "$max_attempts" ]; then
-    echo "Database migration failed after $max_attempts attempts."
-    exit 1
+  if [ "${MIGRATE_FRESH_ON_FAIL:-false}" = "true" ]; then
+    echo "MIGRATE_FRESH_ON_FAIL=true, running migrate:fresh..."
+    php artisan migrate:fresh --force --no-interaction || true
   fi
 
-  echo "Migration attempt $attempt/$max_attempts failed. Retrying in 5 seconds..."
-  attempt=$((attempt + 1))
-  sleep 5
-done
+  echo "Continuing startup so service stays live."
+fi
 
-echo "Migrations completed. Starting web server..."
+echo "Starting web server..."
 exec php -S 0.0.0.0:${PORT:-10000} -t public
