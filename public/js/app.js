@@ -22473,71 +22473,71 @@ function _toPrimitive(t, r) { if ("object" != _typeof(t) || !t) return t; var e 
     // For Everyday
     {
       id: 1,
-      name: 'Basic T-Shirt',
-      price: 19.00,
+      name: 'Classic Low-Top Sneakers',
+      price: 79.00,
       category: 'everyday',
-      tagline: 'Everyday essential cotton fit',
-      image: 'https://via.placeholder.com/480x360/dae2ec/1f3a5f?text=Basic+T-Shirt'
+      tagline: 'Sleek everyday sneakers for casual wear',
+      image: 'https://via.placeholder.com/480x360/dae2ec/1f3a5f?text=Classic+Low-Top'
     }, {
       id: 2,
-      name: 'Canvas Tote Bag',
-      price: 24.00,
+      name: 'Urban Slip-On Shoes',
+      price: 64.00,
       category: 'everyday',
-      tagline: 'Durable carryall for your daily run',
-      image: 'https://via.placeholder.com/480x360/e5ebf2/1f3a5f?text=Canvas+Tote+Bag'
+      tagline: 'Easy on, easy off for your daily routine',
+      image: 'https://via.placeholder.com/480x360/e5ebf2/1f3a5f?text=Urban+Slip-On'
     }, {
       id: 3,
-      name: 'Coffee Mug',
-      price: 14.00,
+      name: 'Canvas Street Kicks',
+      price: 55.00,
       category: 'everyday',
-      tagline: 'Minimal mug for your morning routine',
-      image: 'https://via.placeholder.com/480x360/dfe7f0/1f3a5f?text=Coffee+Mug'
+      tagline: 'Lightweight canvas for all-day comfort',
+      image: 'https://via.placeholder.com/480x360/dfe7f0/1f3a5f?text=Canvas+Street+Kicks'
     },
     // For Travel
     {
       id: 4,
-      name: 'Trail Backpack',
-      price: 68.00,
+      name: 'Comfort Walk Loafers',
+      price: 89.00,
       category: 'travel',
-      tagline: 'Organized storage for any journey',
-      image: 'https://via.placeholder.com/480x360/e8edf3/1f3a5f?text=Trail+Backpack'
+      tagline: 'Cushioned soles built for long walks',
+      image: 'https://via.placeholder.com/480x360/e8edf3/1f3a5f?text=Comfort+Walk+Loafers'
     }, {
       id: 5,
-      name: 'Packing Cubes Set',
-      price: 32.00,
+      name: 'Foldable Travel Flats',
+      price: 48.00,
       category: 'travel',
-      tagline: 'Keep your luggage neat and compact',
-      image: 'https://via.placeholder.com/480x360/d6e0ea/1f3a5f?text=Packing+Cubes'
+      tagline: 'Pack-friendly flats for any destination',
+      image: 'https://via.placeholder.com/480x360/d6e0ea/1f3a5f?text=Travel+Flats'
     }, {
       id: 6,
-      name: 'Travel Neck Pillow',
-      price: 22.00,
+      name: 'Lightweight Mesh Sneakers',
+      price: 72.00,
       category: 'travel',
-      tagline: 'Comfort support for long-haul flights',
-      image: 'https://via.placeholder.com/480x360/dde5f0/1f3a5f?text=Neck+Pillow'
+      tagline: 'Breathable mesh perfect for exploring cities',
+      image: 'https://via.placeholder.com/480x360/dde5f0/1f3a5f?text=Mesh+Sneakers'
     },
     // For Activity
     {
       id: 7,
-      name: 'Runner Sneakers',
-      price: 89.00,
+      name: 'Pro Runner Sneakers',
+      price: 119.00,
       category: 'activity',
-      tagline: 'Lightweight pair for city movement',
-      image: 'https://via.placeholder.com/480x360/d6e0ea/1f3a5f?text=Runner+Sneakers'
+      tagline: 'High-performance shoes for serious runners',
+      image: 'https://via.placeholder.com/480x360/d6e0ea/1f3a5f?text=Pro+Runner+Sneakers'
     }, {
       id: 8,
-      name: 'Comfy Socks',
-      price: 12.00,
+      name: 'Training Court Shoes',
+      price: 95.00,
       category: 'activity',
-      tagline: 'Breathable comfort for all-day use',
-      image: 'https://via.placeholder.com/480x360/d9e3ee/1f3a5f?text=Comfy+Socks'
+      tagline: 'Stable grip for gym and court workouts',
+      image: 'https://via.placeholder.com/480x360/d9e3ee/1f3a5f?text=Training+Court+Shoes'
     }, {
       id: 9,
-      name: 'Gym Water Bottle',
-      price: 28.00,
+      name: 'Trail Running Shoes',
+      price: 109.00,
       category: 'activity',
-      tagline: 'Insulated and leak-proof for workouts',
-      image: 'https://via.placeholder.com/480x360/dae4ef/1f3a5f?text=Water+Bottle'
+      tagline: 'Rugged outsole for off-road adventures',
+      image: 'https://via.placeholder.com/480x360/dae4ef/1f3a5f?text=Trail+Running+Shoes'
     }]);
     var cart = (0,vue__WEBPACK_IMPORTED_MODULE_0__.ref)([]);
     var cartSlideTrigger = (0,vue__WEBPACK_IMPORTED_MODULE_0__.ref)(0);
