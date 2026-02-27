@@ -1,5 +1,5 @@
 <template>
-    <section class="container hero-wrap">
+    <section class="hero-wrap">
         <div class="hero-banner">
             <aside class="menu-card">
                 <h4>Featured</h4>
@@ -21,38 +21,35 @@
 </template>
 
 <style scoped>
-.container {
-    max-width: 1240px;
-    margin: 0 auto;
-    padding: 0 22px;
-}
-
 .hero-wrap {
-    margin-top: 18px;
+    width: 100%;
+    margin: 0;
+    padding: 0;
 }
 
 .hero-banner {
     position: relative;
-    border-radius: 4px;
-    min-height: 540px;
+    width: 100%;
+    min-height: 100vh;
     overflow: hidden;
     background-image:
-        linear-gradient(90deg, rgba(59, 42, 26, 0.68) 0%, rgba(59, 42, 26, 0.24) 45%, rgba(59, 42, 26, 0.28) 100%),
-        url('https://images.unsplash.com/photo-1542291026-7eec264c27ff?auto=format&fit=crop&w=1600&q=80');
+        linear-gradient(180deg, rgba(0, 0, 0, 0.15) 0%, rgba(0, 0, 0, 0.35) 60%, rgba(0, 0, 0, 0.6) 100%),
+        linear-gradient(90deg, rgba(59, 42, 26, 0.55) 0%, rgba(59, 42, 26, 0.10) 50%, transparent 100%),
+        url('https://images.unsplash.com/photo-1542291026-7eec264c27ff?auto=format&fit=crop&w=1920&q=85');
     background-size: cover;
     background-position: center;
-    box-shadow: var(--shadow-hero);
+    background-attachment: fixed;
 }
 
 .menu-card {
     position: absolute;
-    top: 98px;
-    left: 44px;
+    top: 120px;
+    left: 60px;
     background: rgba(255, 255, 255, 0.96);
     padding: 28px 28px 24px;
     width: 220px;
     box-shadow: var(--shadow-card);
-    animation: fadeUp 0.7s ease;
+    animation: fadeUp 0.7s ease both;
 }
 
 .menu-card h4 {
@@ -70,29 +67,39 @@
     font-size: 17px;
     margin: 10px 0;
     font-weight: 500;
+    transition: color 0.2s ease, transform 0.2s ease;
+}
+
+.menu-card a:hover {
+    color: var(--color-primary);
+    transform: translateX(4px);
+    filter: none;
 }
 
 .hero-content {
     position: absolute;
-    right: 46px;
-    bottom: 56px;
-    max-width: 480px;
+    right: 80px;
+    bottom: 100px;
+    max-width: 520px;
     color: #fff;
     text-align: left;
-    animation: fadeUp 0.9s ease;
+    animation: fadeUp 0.9s ease 0.2s both;
 }
 
 .hero-content h1 {
     margin: 0;
-    font-size: 62px;
-    line-height: 1.05;
+    font-size: 72px;
+    line-height: 1.02;
     letter-spacing: -0.03em;
+    text-shadow: 0 2px 20px rgba(0,0,0,0.3);
 }
 
 .hero-content p {
-    margin: 10px 0 0;
+    margin: 14px 0 0;
     font-size: 22px;
-    color: rgba(255, 255, 255, 0.92);
+    color: rgba(255, 255, 255, 0.9);
+    line-height: 1.5;
+    text-shadow: 0 1px 8px rgba(0,0,0,0.25);
 }
 
 .btn {
@@ -101,17 +108,24 @@
     justify-content: center;
     text-decoration: none;
     border-radius: 2px;
-    padding: 12px 24px;
-    font-size: 15px;
+    padding: 14px 28px;
+    font-size: 14px;
     font-weight: 700;
     text-transform: uppercase;
-    letter-spacing: 0.05em;
+    letter-spacing: 0.06em;
+    transition: transform 0.25s ease, box-shadow 0.25s ease;
+}
+
+.btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 24px rgba(0,0,0,0.25);
+    filter: none;
 }
 
 .hero-actions {
-    margin-top: 20px;
+    margin-top: 28px;
     display: flex;
-    gap: 12px;
+    gap: 14px;
     flex-wrap: wrap;
 }
 
@@ -121,19 +135,19 @@
 }
 
 .btn-outline {
-    border: 1px solid rgba(255, 255, 255, 0.7);
+    background: transparent;
+    border: 2px solid rgba(255, 255, 255, 0.8);
     color: #fff;
-    background: #fff;
 }
 
-.btn-outline {
-    background: transparent;
+.btn-outline:hover {
+    background: rgba(255, 255, 255, 0.12);
 }
 
 @keyframes fadeUp {
     from {
         opacity: 0;
-        transform: translateY(16px);
+        transform: translateY(20px);
     }
     to {
         opacity: 1;
@@ -141,29 +155,69 @@
     }
 }
 
-@media (max-width: 900px) {
+/* Tablet */
+@media (max-width: 980px) {
     .hero-banner {
-        min-height: 500px;
+        min-height: 100vh;
+        background-attachment: scroll;
     }
 
     .menu-card {
-        position: static;
-        width: auto;
-        margin: 24px;
+        top: 80px;
+        left: 32px;
+        width: 190px;
+        padding: 22px;
     }
 
     .hero-content {
-        left: 24px;
-        right: 24px;
-        bottom: 24px;
+        right: 32px;
+        bottom: 80px;
+        max-width: 420px;
     }
 
     .hero-content h1 {
-        font-size: 42px;
+        font-size: 52px;
     }
 
     .hero-content p {
         font-size: 18px;
+    }
+}
+
+/* Mobile */
+@media (max-width: 640px) {
+    .hero-banner {
+        min-height: 100vh;
+        background-attachment: scroll;
+    }
+
+    .menu-card {
+        position: absolute;
+        top: 60px;
+        left: 20px;
+        right: 20px;
+        width: auto;
+        padding: 18px 20px;
+    }
+
+    .hero-content {
+        left: 20px;
+        right: 20px;
+        bottom: 60px;
+        max-width: 100%;
+    }
+
+    .hero-content h1 {
+        font-size: 38px;
+    }
+
+    .hero-content p {
+        font-size: 16px;
+    }
+
+    .btn {
+        padding: 12px 20px;
+        font-size: 13px;
     }
 }
 </style>

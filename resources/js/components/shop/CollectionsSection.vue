@@ -1,4 +1,4 @@
-<template>
+ <template>
     <section class="container collections fade-in-up">
         <article class="collection-card" v-for="item in collections" :key="item.title">
             <img :src="item.image" :alt="item.title" />

@@ -3,44 +3,76 @@
         <div class="favorites-head">
             <h2>Our Favorites</h2>
             <nav class="tabs" aria-label="Product categories">
-                <button type="button" class="active">For Everyday</button>
-                <button type="button">For Travel</button>
-                <button type="button">For Activity</button>
+                <button
+                    type="button"
+                    :class="{ active: activeTab === 'everyday' }"
+                    @click="setTab('everyday')"
+                >For Everyday</button>
+                <button
+                    type="button"
+                    :class="{ active: activeTab === 'travel' }"
+                    @click="setTab('travel')"
+                >For Travel</button>
+                <button
+                    type="button"
+                    :class="{ active: activeTab === 'activity' }"
+                    @click="setTab('activity')"
+                >For Activity</button>
             </nav>
         </div>
 
         <div class="card-header">
             <h2>Shop Section</h2>
-            <span>{{ products.length }} products</span>
+            <span>{{ filteredProducts.length }} products</span>
         </div>
 
-        <div class="product-grid">
-            <article v-for="product in products" :key="product.id" class="product-card scale-on-hover">
-                <div class="thumb-wrap">
-                    <img :src="product.image" :alt="product.name" class="thumb" />
-                </div>
-
-                <div class="product-body">
-                    <h3>{{ product.name }}</h3>
-                    <p>{{ product.tagline }}</p>
-
-                    <div class="actions">
-                        <strong>${{ product.price.toFixed(2) }}</strong>
-                        <button type="button" @click="$emit('add', product)">Add to cart</button>
+        <Transition name="fade-tab" mode="out-in">
+            <div class="product-grid" :key="activeTab">
+                <article
+                    v-for="product in filteredProducts"
+                    :key="product.id"
+                    class="product-card scale-on-hover"
+                >
+                    <div class="thumb-wrap">
+                        <img :src="product.image" :alt="product.name" class="thumb" />
                     </div>
-                </div>
-            </article>
-        </div>
+
+                    <div class="product-body">
+                        <h3>{{ product.name }}</h3>
+                        <p>{{ product.tagline }}</p>
+
+                        <div class="actions">
+                            <strong>${{ product.price.toFixed(2) }}</strong>
+                            <button type="button" @click="$emit('add', product)">Add to cart</button>
+                        </div>
+                    </div>
+                </article>
+            </div>
+        </Transition>
     </section>
 </template>
 
 <script setup>
-defineProps({
+import { ref, computed } from 'vue';
+
+const props = defineProps({
     products: {
         type: Array,
         required: true
     }
 });
+
+defineEmits(['add']);
+
+const activeTab = ref('everyday');
+
+const setTab = (tab) => {
+    activeTab.value = tab;
+};
+
+const filteredProducts = computed(() =>
+    props.products.filter(p => p.category === activeTab.value)
+);
 </script>
 
 <style scoped>
@@ -76,6 +108,7 @@ defineProps({
     background: transparent;
     border: 0;
     border-bottom: 2px solid transparent;
+    margin-bottom: -1px;
     padding: 12px 8px;
     text-transform: uppercase;
     letter-spacing: 0.08em;
@@ -83,6 +116,11 @@ defineProps({
     font-weight: 700;
     color: var(--color-muted);
     cursor: pointer;
+    transition: color 0.2s ease, border-bottom-color 0.2s ease;
+}
+
+.tabs button:hover {
+    color: var(--color-text);
 }
 
 .tabs button.active {
@@ -108,6 +146,22 @@ defineProps({
 .card-header span {
     color: var(--color-muted);
     font-size: 14px;
+}
+
+/* Tab switch animation */
+.fade-tab-enter-active,
+.fade-tab-leave-active {
+    transition: opacity 0.28s ease, transform 0.28s ease;
+}
+
+.fade-tab-enter-from {
+    opacity: 0;
+    transform: translateY(14px);
+}
+
+.fade-tab-leave-to {
+    opacity: 0;
+    transform: translateY(-8px);
 }
 
 .product-grid {

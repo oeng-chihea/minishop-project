@@ -2,12 +2,34 @@
     <div>
         <SiteHeader />
         <HeroSection />
+        <TrendingBanner />
         <CollectionsSection id="collections" />
         <ValueStrip id="values" />
 
-        <main class="container main-single">
+        <main class="container main-single" id="shop">
             <ProductGrid :products="products" @add="addToCart" />
         </main>
+
+        <section class="container why" id="why-us">
+            <article class="why-card reveal-card" style="--reveal-delay: 0s">
+                <div class="why-icon">✦</div>
+                <h3>Premium Quality</h3>
+                <p>Every item in our collection passes a strict quality check. We source only soft-touch fabrics, durable builds, and materials that hold up beautifully over time.</p>
+            </article>
+            <article class="why-card reveal-card" style="--reveal-delay: 0.1s">
+                <div class="why-icon">◈</div>
+                <h3>Style for Everyone</h3>
+                <p>From street-ready essentials to travel companions and active gear, our curated range covers every lifestyle, occasion, and budget.</p>
+            </article>
+            <article class="why-card reveal-card" style="--reveal-delay: 0.2s">
+                <div class="why-icon">⬡</div>
+                <h3>Fast &amp; Secure Checkout</h3>
+                <p>Pay safely with ABA PayWay — Cambodia's most trusted payment platform. Your data is encrypted and your order confirmed in seconds.</p>
+            </article>
+        </section>
+
+        <TestimonialsSection />
+        <FAQSection />
 
         <CartPanel
             :open="isCartOpen"
@@ -29,21 +51,6 @@
             {{ isCartOpen ? 'Close Cart' : `Cart (${totalItems})` }}
         </button>
 
-        <section class="container why" id="why-us">
-            <article>
-                <h3>Premium materials</h3>
-                <p>Designed with soft-touch fabrics and durable details for daily wear.</p>
-            </article>
-            <article>
-                <h3>Modern component flow</h3>
-                <p>Modular Vue components keep the storefront easy to expand and maintain.</p>
-            </article>
-            <article>
-                <h3>Checkout-ready foundation</h3>
-                <p>This layout is ready for Laravel APIs, payment integration, and real product records.</p>
-            </article>
-        </section>
-
         <NewsletterSection id="newsletter" />
     </div>
 </template>
@@ -52,17 +59,22 @@
 import { computed, ref } from 'vue';
 import SiteHeader from './layout/SiteHeader.vue';
 import HeroSection from './shop/HeroSection.vue';
+import TrendingBanner from './shop/TrendingBanner.vue';
 import CollectionsSection from './shop/CollectionsSection.vue';
 import ValueStrip from './shop/ValueStrip.vue';
 import ProductGrid from './shop/ProductGrid.vue';
 import CartPanel from './shop/CartPanel.vue';
+import TestimonialsSection from './shop/TestimonialsSection.vue';
+import FAQSection from './shop/FAQSection.vue';
 import NewsletterSection from './shop/NewsletterSection.vue';
 
 const products = ref([
+    // For Everyday
     {
         id: 1,
         name: 'Basic T-Shirt',
         price: 19.00,
+        category: 'everyday',
         tagline: 'Everyday essential cotton fit',
         image: 'https://via.placeholder.com/480x360/dae2ec/1f3a5f?text=Basic+T-Shirt'
     },
@@ -70,6 +82,7 @@ const products = ref([
         id: 2,
         name: 'Canvas Tote Bag',
         price: 24.00,
+        category: 'everyday',
         tagline: 'Durable carryall for your daily run',
         image: 'https://via.placeholder.com/480x360/e5ebf2/1f3a5f?text=Canvas+Tote+Bag'
     },
@@ -77,29 +90,59 @@ const products = ref([
         id: 3,
         name: 'Coffee Mug',
         price: 14.00,
+        category: 'everyday',
         tagline: 'Minimal mug for your morning routine',
         image: 'https://via.placeholder.com/480x360/dfe7f0/1f3a5f?text=Coffee+Mug'
     },
+    // For Travel
     {
         id: 4,
+        name: 'Trail Backpack',
+        price: 68.00,
+        category: 'travel',
+        tagline: 'Organized storage for any journey',
+        image: 'https://via.placeholder.com/480x360/e8edf3/1f3a5f?text=Trail+Backpack'
+    },
+    {
+        id: 5,
+        name: 'Packing Cubes Set',
+        price: 32.00,
+        category: 'travel',
+        tagline: 'Keep your luggage neat and compact',
+        image: 'https://via.placeholder.com/480x360/d6e0ea/1f3a5f?text=Packing+Cubes'
+    },
+    {
+        id: 6,
+        name: 'Travel Neck Pillow',
+        price: 22.00,
+        category: 'travel',
+        tagline: 'Comfort support for long-haul flights',
+        image: 'https://via.placeholder.com/480x360/dde5f0/1f3a5f?text=Neck+Pillow'
+    },
+    // For Activity
+    {
+        id: 7,
         name: 'Runner Sneakers',
         price: 89.00,
+        category: 'activity',
         tagline: 'Lightweight pair for city movement',
         image: 'https://via.placeholder.com/480x360/d6e0ea/1f3a5f?text=Runner+Sneakers'
     },
     {
-        id: 5,
-        name: 'Trail Backpack',
-        price: 68.00,
-        tagline: 'Organized storage for day trips',
-        image: 'https://via.placeholder.com/480x360/e8edf3/1f3a5f?text=Trail+Backpack'
-    },
-    {
-        id: 6,
+        id: 8,
         name: 'Comfy Socks',
         price: 12.00,
+        category: 'activity',
         tagline: 'Breathable comfort for all-day use',
         image: 'https://via.placeholder.com/480x360/d9e3ee/1f3a5f?text=Comfy+Socks'
+    },
+    {
+        id: 9,
+        name: 'Gym Water Bottle',
+        price: 28.00,
+        category: 'activity',
+        tagline: 'Insulated and leak-proof for workouts',
+        image: 'https://via.placeholder.com/480x360/dae4ef/1f3a5f?text=Water+Bottle'
     }
 ]);
 
@@ -214,7 +257,6 @@ const checkoutWithAba = async () => {
     checkoutLoading.value = true;
 
     try {
-        // Build the item payload expected by the Laravel controller
         const items = cart.value.map((item) => ({
             name:  item.name,
             qty:   item.qty,
@@ -231,13 +273,11 @@ const checkoutWithAba = async () => {
 
         checkoutLoading.value = false;
 
-        // 1. Always prefer the hosted web checkout URL (works on every device).
         if (webCheckoutUrl && /^https?:\/\//i.test(webCheckoutUrl)) {
             window.location.href = webCheckoutUrl;
             return;
         }
 
-        // 2. Real mobile device → try ABA app deeplink, fall back to QR popup.
         if (onMobile && deepLink) {
             window.location.href = deepLink;
 
@@ -255,8 +295,6 @@ const checkoutWithAba = async () => {
             return;
         }
 
-        // 3. Desktop browser (or mobile without deeplink) → show QR popup directly.
-        //    Never attempt abamobilebank:// on desktop – browsers reject the scheme.
         if (hasQr && openQrFallback(data)) {
             checkoutError.value = isSandbox
                 ? 'Scan the QR code in your ABA Mobile app to pay. (Sandbox mode)'
@@ -314,31 +352,54 @@ const totalPrice = computed(() =>
     background: var(--color-primary-strong);
 }
 
+/* Why section */
 .why {
     margin-top: 24px;
-    margin-bottom: 60px;
+    margin-bottom: 0;
+    padding-bottom: 60px;
     display: grid;
     grid-template-columns: repeat(3, minmax(0, 1fr));
     gap: 14px;
 }
 
-.why article {
+.why-card {
     background: var(--color-surface);
     border: 1px solid var(--color-line);
-    border-radius: 0;
-    padding: 18px;
+    padding: 28px 22px;
     box-shadow: var(--shadow-card);
+    position: relative;
+    overflow: hidden;
+    opacity: 0;
+    transform: translateY(20px);
+    animation: revealCard 0.6s ease var(--reveal-delay, 0s) forwards;
+}
+
+@keyframes revealCard {
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.why-icon {
+    font-size: 22px;
+    color: var(--color-accent);
+    margin-bottom: 14px;
+    display: block;
+    line-height: 1;
 }
 
 .why h3 {
-    margin: 0;
-    font-size: 21px;
+    margin: 0 0 10px;
+    font-size: 20px;
+    letter-spacing: -0.01em;
 }
 
 .why p {
-    margin: 10px 0 0;
+    margin: 0;
     color: var(--color-muted);
-    line-height: 1.5;
+    line-height: 1.6;
+    font-size: 14px;
 }
 
 @media (max-width: 860px) {

@@ -1,10 +1,5 @@
 <template>
     <header>
-        <div class="promo-bar">
-            Free shipping over $100 • New arrivals are live now
-            <a href="#shop" @click="scrollToSection($event, 'shop')">Shop now</a>
-        </div>
-
         <div class="site-header">
             <div class="container header-inner">
                 <nav class="left-nav">
@@ -14,56 +9,81 @@
                     <a href="#newsletter" @click="scrollToSection($event, 'newsletter')">Sale</a>
                 </nav>
 
-                <a href="#" class="brand">NovaStore</a>
-
-                <nav class="right-nav">
-                    <a href="#why-us" @click="scrollToSection($event, 'why-us')">Sustainability</a>
-                    <a href="#why-us" @click="scrollToSection($event, 'why-us')">Stores</a>
-                    <button type="button" aria-label="Search">⌕</button>
-                    <button type="button" aria-label="Cart">🛒</button>
-                </nav>
+                <a href="#" class="brand" aria-label="minishopkh home">
+                    <span class="brand-text">{{ displayText }}</span><span class="brand-cursor">|</span>
+                </a>
             </div>
         </div>
     </header>
 </template>
 
 <script setup>
+import { ref, onMounted, onBeforeUnmount } from 'vue';
+
+const displayText = ref('');
+const fullText    = 'minishopkh';
+
+const TYPE_SPEED          = 100;   // ms per character while typing
+const DELETE_SPEED        = 55;    // ms per character while deleting
+const PAUSE_AFTER_TYPED   = 2000;  // pause once fully typed
+const PAUSE_AFTER_DELETED = 500;   // pause once fully deleted
+
+let charIndex  = 0;
+let isDeleting = false;
+let timerId    = null;
+let stopped    = false;
+
+const tick = () => {
+    if (stopped) return;
+
+    if (!isDeleting) {
+        charIndex++;
+        displayText.value = fullText.slice(0, charIndex);
+
+        if (charIndex === fullText.length) {
+            isDeleting = true;
+            timerId = setTimeout(tick, PAUSE_AFTER_TYPED);
+        } else {
+            timerId = setTimeout(tick, TYPE_SPEED);
+        }
+    } else {
+        charIndex--;
+        displayText.value = fullText.slice(0, charIndex);
+
+        if (charIndex === 0) {
+            isDeleting = false;
+            timerId = setTimeout(tick, PAUSE_AFTER_DELETED);
+        } else {
+            timerId = setTimeout(tick, DELETE_SPEED);
+        }
+    }
+};
+
 const scrollToSection = (event, sectionId) => {
     event.preventDefault();
 
     const target = document.getElementById(sectionId);
 
-    if (!target) {
-        return;
-    }
+    if (!target) return;
 
     const stickyHeader = document.querySelector('.site-header');
-    const headerOffset = stickyHeader ? stickyHeader.offsetHeight + 10 : 82;
-    const targetTop = target.getBoundingClientRect().top + window.pageYOffset - headerOffset;
+    const headerOffset = stickyHeader ? stickyHeader.offsetHeight + 10 : 72;
+    const targetTop    = target.getBoundingClientRect().top + window.pageYOffset - headerOffset;
 
-    window.scrollTo({
-        top: targetTop,
-        behavior: 'smooth'
-    });
+    window.scrollTo({ top: targetTop, behavior: 'smooth' });
 };
+
+onMounted(() => {
+    timerId = setTimeout(tick, 400);
+});
+
+onBeforeUnmount(() => {
+    stopped = true;
+    clearTimeout(timerId);
+});
 </script>
 
 <style scoped>
-.promo-bar {
-    background: var(--color-primary);
-    color: #fff;
-    text-align: center;
-    font-size: 12px;
-    font-weight: 600;
-    letter-spacing: 0.01em;
-    padding: 8px 12px;
-}
-
-.promo-bar a {
-    color: #e6eefb;
-    margin-left: 6px;
-}
-
 .site-header {
     position: sticky;
     top: 0;
@@ -81,29 +101,56 @@ const scrollToSection = (event, sectionId) => {
 
 .header-inner {
     min-height: 72px;
-    display: grid;
-    grid-template-columns: 1fr auto 1fr;
+    display: flex;
     align-items: center;
+    position: relative;
 }
 
+/* ── Brand ─────────────────────────────────────── */
 .brand {
-    font-size: 34px;
-    font-weight: 800;
-    letter-spacing: -0.02em;
-    color: var(--color-text);
+    position: absolute;
+    left: 50%;
+    transform: translateX(-50%);
     text-decoration: none;
-    justify-self: center;
+    white-space: nowrap;
+    display: inline-flex;
+    align-items: baseline;
 }
 
-.left-nav,
-.right-nav {
+.brand-text {
+    font-size: 42px;
+    font-weight: 800;
+    letter-spacing: -0.03em;
+    color: var(--color-text);
+    line-height: 1;
+    min-width: 1px;
+}
+
+/* Always-blinking cursor */
+.brand-cursor {
+    font-size: 42px;
+    font-weight: 300;
+    color: var(--color-primary);
+    line-height: 1;
+    margin-left: 2px;
+    animation: blink 0.75s step-end infinite;
+}
+
+@keyframes blink {
+    0%, 100% { opacity: 1; }
+    50%       { opacity: 0; }
+}
+
+/* ── Left nav ───────────────────────────────────── */
+.left-nav {
     display: flex;
     align-items: center;
     gap: 16px;
+    position: relative;
+    z-index: 1;
 }
 
-.left-nav a,
-.right-nav a {
+.left-nav a {
     text-decoration: none;
     color: var(--color-text);
     font-weight: 700;
@@ -112,37 +159,39 @@ const scrollToSection = (event, sectionId) => {
     text-transform: uppercase;
 }
 
-.right-nav {
-    justify-content: flex-end;
-}
-
-.right-nav button {
-    border: 0;
-    background: transparent;
-    cursor: pointer;
-    font-size: 18px;
-    line-height: 1;
-}
-
+/* ── Tablet ─────────────────────────────────────── */
 @media (max-width: 980px) {
     .left-nav a:nth-child(3),
-    .left-nav a:nth-child(4),
-    .right-nav a {
+    .left-nav a:nth-child(4) {
+        display: none;
+    }
+
+    .brand-text,
+    .brand-cursor {
+        font-size: 34px;
+    }
+}
+
+/* ── Mobile ─────────────────────────────────────── */
+@media (max-width: 640px) {
+    .left-nav {
         display: none;
     }
 
     .brand {
-        font-size: 28px;
+        position: static;
+        transform: none;
+        width: 100%;
+        justify-content: center;
     }
-}
 
-@media (max-width: 640px) {
     .header-inner {
-        grid-template-columns: 1fr auto;
+        justify-content: center;
     }
 
-    .left-nav {
-        display: none;
+    .brand-text,
+    .brand-cursor {
+        font-size: 28px;
     }
 }
 </style>
