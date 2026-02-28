@@ -76,32 +76,37 @@ const filteredProducts = computed(() =>
 </script>
 
 <style scoped>
+/* ─── Section wrapper ─────────────────────────── */
 .card {
-    background: var(--color-surface);
-    border: 1px solid var(--color-line);
-    border-radius: 0;
-    padding: 30px 30px 18px;
-    box-shadow: var(--shadow-card);
+    background: #080d16;
+    border: none;
+    padding: 72px 30px 80px;
 }
 
+/* ─── Header ──────────────────────────────────── */
 .favorites-head {
-    margin-bottom: 22px;
+    margin-bottom: 36px;
+    text-align: center;
 }
 
 .favorites-head h2 {
     margin: 0;
-    font-size: 40px;
-    text-align: center;
-    letter-spacing: -0.02em;
-    color: var(--color-text);
+    font-size: clamp(32px, 4vw, 48px);
+    letter-spacing: -0.03em;
+    color: #ffffff;
+    font-weight: 800;
 }
 
+/* ─── Tabs ────────────────────────────────────── */
 .tabs {
-    margin-top: 18px;
-    border-bottom: 1px solid var(--color-line);
+    margin-top: 22px;
+    border-bottom: 1px solid rgba(255,255,255,0.08);
     display: grid;
     grid-template-columns: repeat(3, 1fr);
-    gap: 8px;
+    gap: 0;
+    max-width: 520px;
+    margin-left: auto;
+    margin-right: auto;
 }
 
 .tabs button {
@@ -109,76 +114,96 @@ const filteredProducts = computed(() =>
     border: 0;
     border-bottom: 2px solid transparent;
     margin-bottom: -1px;
-    padding: 12px 8px;
+    padding: 13px 8px;
     text-transform: uppercase;
-    letter-spacing: 0.08em;
-    font-size: 12px;
+    letter-spacing: 0.1em;
+    font-size: 11px;
     font-weight: 700;
-    color: var(--color-muted);
+    color: rgba(255,255,255,0.35);
     cursor: pointer;
     transition: color 0.2s ease, border-bottom-color 0.2s ease;
+    font-family: inherit;
 }
 
 .tabs button:hover {
-    color: var(--color-text);
+    color: rgba(255,255,255,0.7);
 }
 
 .tabs button.active {
-    color: var(--color-text);
-    border-bottom-color: var(--color-text);
+    color: #ffffff;
+    border-bottom-color: #ffffff;
 }
 
+/* ─── Sub-header ──────────────────────────────── */
 .card-header {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-bottom: 10px;
+    margin-bottom: 20px;
     padding-top: 10px;
+    max-width: 1180px;
+    margin-left: auto;
+    margin-right: auto;
 }
 
 .card-header h2 {
     margin: 0;
-    font-size: 24px;
-    letter-spacing: -0.02em;
-    color: var(--color-text);
+    font-size: 18px;
+    letter-spacing: -0.01em;
+    color: rgba(255,255,255,0.5);
+    font-weight: 500;
 }
 
 .card-header span {
-    color: var(--color-muted);
-    font-size: 14px;
+    color: rgba(255,255,255,0.25);
+    font-size: 13px;
 }
 
-/* Tab switch animation */
+/* ─── Tab transition ──────────────────────────── */
 .fade-tab-enter-active,
 .fade-tab-leave-active {
-    transition: opacity 0.28s ease, transform 0.28s ease;
+    transition: opacity 0.3s ease, transform 0.3s ease;
 }
 
 .fade-tab-enter-from {
     opacity: 0;
-    transform: translateY(14px);
+    transform: translateY(16px);
 }
 
 .fade-tab-leave-to {
     opacity: 0;
-    transform: translateY(-8px);
+    transform: translateY(-10px);
 }
 
+/* ─── Product grid ────────────────────────────── */
 .product-grid {
     display: grid;
     grid-template-columns: repeat(3, minmax(0, 1fr));
-    gap: 14px;
+    gap: 16px;
+    max-width: 1180px;
+    margin: 0 auto;
 }
 
+/* ─── Product card ────────────────────────────── */
 .product-card {
-    border: 1px solid var(--color-line);
-    background: var(--color-surface-soft);
+    background: #111827;
+    border: 1px solid rgba(255,255,255,0.06);
     overflow: hidden;
+    transition: transform 0.35s cubic-bezier(0.22, 1, 0.36, 1),
+                box-shadow 0.35s ease,
+                border-color 0.35s ease;
 }
 
+.product-card:hover {
+    transform: translateY(-6px);
+    box-shadow: 0 24px 48px rgba(0,0,0,0.5);
+    border-color: rgba(255,255,255,0.12);
+}
+
+/* ─── Thumbnail ───────────────────────────────── */
 .thumb-wrap {
     aspect-ratio: 4 / 3;
-    background: #e8edf3;
+    background: #1a2234;
     overflow: hidden;
 }
 
@@ -186,21 +211,31 @@ const filteredProducts = computed(() =>
     width: 100%;
     height: 100%;
     object-fit: cover;
+    transition: transform 0.6s cubic-bezier(0.22, 1, 0.36, 1);
 }
 
+.product-card:hover .thumb {
+    transform: scale(1.04);
+}
+
+/* ─── Body ────────────────────────────────────── */
 .product-body {
-    padding: 14px;
+    padding: 18px 18px 20px;
 }
 
 h3 {
     margin: 0;
-    color: var(--color-text);
+    font-size: 15px;
+    font-weight: 700;
+    color: #ffffff;
+    letter-spacing: -0.01em;
 }
 
 p {
-    margin: 5px 0 0;
-    color: var(--color-muted);
-    font-size: 14px;
+    margin: 6px 0 0;
+    color: rgba(255,255,255,0.4);
+    font-size: 13px;
+    line-height: 1.5;
 }
 
 .actions {
@@ -208,30 +243,35 @@ p {
     justify-content: space-between;
     align-items: center;
     gap: 10px;
-    margin-top: 14px;
+    margin-top: 16px;
 }
 
 strong {
-    font-size: 18px;
-    color: var(--color-text);
+    font-size: 17px;
+    font-weight: 700;
+    color: #ffffff;
 }
 
 button {
     border: 0;
     border-radius: 2px;
-    background: var(--color-primary);
-    color: #fff;
+    background: #ffffff;
+    color: #0a0f1a;
     font-weight: 700;
     text-transform: uppercase;
-    letter-spacing: 0.05em;
-    padding: 11px 16px;
+    letter-spacing: 0.06em;
+    font-size: 12px;
+    padding: 10px 16px;
     cursor: pointer;
+    font-family: inherit;
+    transition: background 0.2s ease, color 0.2s ease;
 }
 
 button:hover {
-    background: var(--color-primary-strong);
+    background: rgba(255,255,255,0.85);
 }
 
+/* ─── Responsive ──────────────────────────────── */
 @media (max-width: 980px) {
     .product-grid {
         grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -239,6 +279,10 @@ button:hover {
 }
 
 @media (max-width: 640px) {
+    .card {
+        padding: 52px 20px 60px;
+    }
+
     .favorites-head h2 {
         font-size: 30px;
     }

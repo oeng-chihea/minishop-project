@@ -2,43 +2,62 @@
     <div class="drawer-wrap" :class="{ open }">
         <div class="backdrop" @click="$emit('close')"></div>
 
-        <aside class="card" :class="{ 'cart-slide': isSliding }">
-            <div class="head">
-                <h2>Cart</h2>
+        <aside class="panel" :class="{ 'cart-slide': isSliding }">
+            <!-- Header -->
+            <div class="panel-head">
+                <div class="head-left">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/>
+                        <line x1="3" y1="6" x2="21" y2="6"/>
+                        <path d="M16 10a4 4 0 0 1-8 0"/>
+                    </svg>
+                    <span class="panel-title">Your Cart</span>
+                </div>
                 <div class="head-right">
-                    <span>{{ totalItems }} items</span>
-                    <button type="button" class="close-btn" @click="$emit('close')">✕</button>
+                    <span class="item-count">{{ totalItems }} {{ totalItems === 1 ? 'item' : 'items' }}</span>
+                    <button type="button" class="close-btn" aria-label="Close cart" @click="$emit('close')">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round">
+                            <line x1="18" y1="6" x2="6" y2="18"/>
+                            <line x1="6" y1="6" x2="18" y2="18"/>
+                        </svg>
+                    </button>
                 </div>
             </div>
 
-            <p v-if="!items.length" class="empty">Your cart is empty. Add products from the shop section.</p>
+            <!-- Empty state -->
+            <div v-if="!items.length" class="empty-state">
+                <svg width="44" height="44" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round" class="empty-icon">
+                    <path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/>
+                    <line x1="3" y1="6" x2="21" y2="6"/>
+                    <path d="M16 10a4 4 0 0 1-8 0"/>
+                </svg>
+                <p>Your cart is empty.</p>
+                <span>Add products from the shop below.</span>
+            </div>
 
+            <!-- Cart items -->
             <TransitionGroup v-else name="cart-item" tag="ul" class="cart-list">
                 <li v-for="item in items" :key="item.id" class="cart-item">
                     <div class="item-meta">
                         <h4>{{ item.name }}</h4>
-                        <p>${{ item.price.toFixed(2) }} each</p>
+                        <p class="unit-price">${{ item.price.toFixed(2) }} each</p>
                     </div>
                     <div class="item-actions">
-                        <strong>${{ (item.qty * item.price).toFixed(2) }}</strong>
+                        <strong class="item-total">${{ (item.qty * item.price).toFixed(2) }}</strong>
                         <div class="qty-control" aria-label="Quantity controls">
                             <button
                                 type="button"
                                 class="qty-btn"
                                 aria-label="Decrease quantity"
                                 @click="$emit('removeOne', item.id)"
-                            >
-                                −
-                            </button>
-                            <span>{{ item.qty }}</span>
+                            >−</button>
+                            <span class="qty-val">{{ item.qty }}</span>
                             <button
                                 type="button"
                                 class="qty-btn"
                                 aria-label="Increase quantity"
                                 @click="$emit('addOne', item.id)"
-                            >
-                                +
-                            </button>
+                            >+</button>
                         </div>
                         <button
                             type="button"
@@ -46,30 +65,49 @@
                             aria-label="Remove item"
                             @click="$emit('removeItem', item.id)"
                         >
-                            🗑
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <polyline points="3 6 5 6 21 6"/>
+                                <path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/>
+                                <path d="M10 11v6M14 11v6"/>
+                                <path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/>
+                            </svg>
                         </button>
                     </div>
                 </li>
             </TransitionGroup>
 
-            <div class="total-row">
-                <p>Total</p>
-                <h3>${{ totalPrice.toFixed(2) }}</h3>
+            <!-- Footer -->
+            <div class="panel-footer">
+                <div class="total-row">
+                    <span class="total-label">Total</span>
+                    <span class="total-amount">${{ totalPrice.toFixed(2) }}</span>
+                </div>
+
+                <button
+                    type="button"
+                    class="btn-checkout"
+                    :disabled="!items.length || checkoutLoading"
+                    @click="$emit('checkout')"
+                >
+                    <svg v-if="!checkoutLoading" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                        <rect x="1" y="4" width="22" height="16" rx="2" ry="2"/>
+                        <line x1="1" y1="10" x2="23" y2="10"/>
+                    </svg>
+                    <svg v-else class="spin-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round">
+                        <path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/>
+                    </svg>
+                    <span>{{ checkoutLoading ? 'Processing…' : 'Checkout with ABA PayWay' }}</span>
+                </button>
+
+                <p v-if="checkoutError" class="checkout-error">{{ checkoutError }}</p>
+
+                <button
+                    type="button"
+                    class="btn-clear"
+                    :disabled="!items.length"
+                    @click="$emit('clear')"
+                >Clear cart</button>
             </div>
-
-            <button
-                type="button"
-                class="checkout"
-                :disabled="!items.length || checkoutLoading"
-                @click="$emit('checkout')"
-            >
-                <span v-if="checkoutLoading">Processing…</span>
-                <span v-else>Checkout with ABA PayWay</span>
-            </button>
-
-            <p v-if="checkoutError" class="checkout-error">{{ checkoutError }}</p>
-
-            <button type="button" class="clear" :disabled="!items.length" @click="$emit('clear')">Clear cart</button>
         </aside>
     </div>
 </template>
@@ -125,6 +163,7 @@ onBeforeUnmount(() => {
 </script>
 
 <style scoped>
+/* ─── Overlay wrap ─────────────────────────────── */
 .drawer-wrap {
     position: fixed;
     inset: 0;
@@ -136,259 +175,381 @@ onBeforeUnmount(() => {
     pointer-events: auto;
 }
 
+/* ─── Backdrop ─────────────────────────────────── */
 .backdrop {
     position: absolute;
     inset: 0;
-    background: rgba(15, 23, 42, 0.32);
+    background: rgba(0, 0, 0, 0.6);
+    backdrop-filter: blur(3px);
+    -webkit-backdrop-filter: blur(3px);
     opacity: 0;
-    transition: opacity 0.3s ease;
+    transition: opacity 0.35s ease;
 }
 
 .drawer-wrap.open .backdrop {
     opacity: 1;
 }
 
-.card {
+/* ─── Panel ────────────────────────────────────── */
+.panel {
     position: absolute;
     right: 0;
     top: 0;
-    width: min(430px, 92vw);
+    width: min(420px, 92vw);
     height: 100%;
-    overflow-y: auto;
-    background: var(--color-surface);
-    border-left: 1px solid var(--color-line);
-    border-radius: 0;
-    padding: 22px;
-    box-shadow: 0 16px 28px rgba(2, 6, 23, 0.08);
+    display: flex;
+    flex-direction: column;
+    background: #0d1220;
+    border-left: 1px solid rgba(255, 255, 255, 0.07);
+    box-shadow: -24px 0 64px rgba(0, 0, 0, 0.5);
     transform: translateX(100%);
-    transition: transform 0.35s cubic-bezier(0.22, 1, 0.36, 1), box-shadow 0.42s ease;
+    transition: transform 0.38s cubic-bezier(0.22, 1, 0.36, 1),
+                box-shadow 0.38s ease;
     will-change: transform;
 }
 
-.drawer-wrap.open .card {
+.drawer-wrap.open .panel {
     transform: translateX(0);
 }
 
 .cart-slide {
-    transform: translateX(-8px);
-    box-shadow: 0 24px 36px rgba(31, 58, 95, 0.18);
+    transform: translateX(-6px) !important;
+    box-shadow: -32px 0 72px rgba(0, 0, 0, 0.65);
 }
 
-.head {
+/* ─── Header ───────────────────────────────────── */
+.panel-head {
     display: flex;
-    justify-content: space-between;
     align-items: center;
-    margin-bottom: 10px;
+    justify-content: space-between;
+    padding: 20px 22px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.07);
+    flex-shrink: 0;
+}
+
+.head-left {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    color: rgba(255, 255, 255, 0.5);
+}
+
+.panel-title {
+    font-size: 15px;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: #ffffff;
 }
 
 .head-right {
     display: flex;
     align-items: center;
-    gap: 10px;
+    gap: 12px;
 }
 
-.head h2 {
-    margin: 0;
-    font-size: 34px;
-}
-
-.head span {
-    color: var(--color-muted);
-    font-size: 14px;
+.item-count {
+    font-size: 12px;
+    color: rgba(255, 255, 255, 0.3);
+    letter-spacing: 0.04em;
 }
 
 .close-btn {
-    border: 1px solid var(--color-line);
-    background: var(--color-surface);
-    color: var(--color-text);
-    border-radius: 2px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
     width: 30px;
     height: 30px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 2px;
+    background: transparent;
+    color: rgba(255, 255, 255, 0.5);
     cursor: pointer;
+    transition: border-color 0.2s ease, color 0.2s ease, background 0.2s ease;
 }
 
-.empty {
-    color: var(--color-muted);
-    line-height: 1.45;
+.close-btn:hover {
+    border-color: rgba(255, 255, 255, 0.25);
+    color: #ffffff;
+    background: rgba(255, 255, 255, 0.05);
 }
 
+/* ─── Empty state ──────────────────────────────── */
+.empty-state {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    padding: 40px 24px;
+    text-align: center;
+}
+
+.empty-icon {
+    color: rgba(255, 255, 255, 0.12);
+}
+
+.empty-state p {
+    margin: 0;
+    font-size: 16px;
+    font-weight: 600;
+    color: rgba(255, 255, 255, 0.5);
+}
+
+.empty-state span {
+    font-size: 13px;
+    color: rgba(255, 255, 255, 0.25);
+}
+
+/* ─── Cart list ────────────────────────────────── */
 .cart-list {
+    flex: 1;
     list-style: none;
     margin: 0;
-    padding: 0;
+    padding: 0 22px;
+    overflow-y: auto;
+    overscroll-behavior: contain;
 }
 
+.cart-list::-webkit-scrollbar {
+    width: 4px;
+}
+
+.cart-list::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.cart-list::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 2px;
+}
+
+/* ─── Cart item ────────────────────────────────── */
 .cart-item {
-    border-top: 1px solid var(--color-line);
-    padding: 13px 0;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+    padding: 16px 0;
     display: flex;
     justify-content: space-between;
     align-items: center;
-    gap: 10px;
+    gap: 12px;
 }
 
 .cart-item:first-child {
-    border-top: 0;
+    border-top: 1px solid rgba(255, 255, 255, 0.06);
+    margin-top: 8px;
 }
 
 h4 {
     margin: 0;
+    font-size: 13px;
+    font-weight: 600;
+    color: #ffffff;
+    letter-spacing: -0.01em;
 }
 
-.item-meta p {
-    margin: 6px 0 0;
-    color: var(--color-muted);
+.unit-price {
+    margin: 5px 0 0;
+    font-size: 12px;
+    color: rgba(255, 255, 255, 0.3);
 }
 
 .item-actions {
     display: flex;
     align-items: center;
     gap: 8px;
+    flex-shrink: 0;
 }
 
+.item-total {
+    font-size: 14px;
+    font-weight: 700;
+    color: #ffffff;
+    min-width: 52px;
+    text-align: right;
+}
+
+/* ─── Qty control ──────────────────────────────── */
 .qty-control {
     display: inline-flex;
     align-items: center;
-    border: 1px solid var(--color-line);
+    border: 1px solid rgba(255, 255, 255, 0.1);
     border-radius: 2px;
     overflow: hidden;
 }
 
 .qty-btn {
-    width: 28px;
-    height: 28px;
+    width: 26px;
+    height: 26px;
     border: 0;
-    background: var(--color-surface);
-    color: var(--color-text);
+    background: transparent;
+    color: rgba(255, 255, 255, 0.6);
     cursor: pointer;
-    font-size: 17px;
+    font-size: 16px;
     line-height: 1;
+    transition: background 0.15s ease, color 0.15s ease;
 }
 
-.qty-control span {
-    min-width: 24px;
+.qty-btn:hover {
+    background: rgba(255, 255, 255, 0.08);
+    color: #ffffff;
+}
+
+.qty-val {
+    min-width: 22px;
     text-align: center;
     font-weight: 700;
-    font-size: 13px;
+    font-size: 12px;
+    color: #ffffff;
 }
 
+/* ─── Trash button ─────────────────────────────── */
 .trash-btn {
-    border: 1px solid var(--color-line);
-    background: var(--color-surface);
-    color: var(--color-text);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 28px;
+    height: 28px;
+    border: 1px solid rgba(255, 255, 255, 0.08);
     border-radius: 2px;
-    width: 30px;
-    height: 30px;
-    padding: 0;
+    background: transparent;
+    color: rgba(255, 255, 255, 0.3);
     cursor: pointer;
+    transition: border-color 0.2s ease, color 0.2s ease, background 0.2s ease;
+}
+
+.trash-btn:hover {
+    border-color: rgba(239, 68, 68, 0.4);
+    color: #ef4444;
+    background: rgba(239, 68, 68, 0.08);
+}
+
+/* ─── Footer ───────────────────────────────────── */
+.panel-footer {
+    padding: 18px 22px 24px;
+    border-top: 1px solid rgba(255, 255, 255, 0.07);
+    flex-shrink: 0;
 }
 
 .total-row {
-    border-top: 1px solid var(--color-line);
-    margin-top: 12px;
-    padding-top: 12px;
     display: flex;
     align-items: center;
     justify-content: space-between;
+    margin-bottom: 16px;
 }
 
-.total-row p {
-    margin: 0;
-    color: var(--color-muted);
+.total-label {
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: rgba(255, 255, 255, 0.35);
 }
 
-.total-row h3 {
-    margin: 0;
-    font-size: 40px;
-    letter-spacing: -0.02em;
+.total-amount {
+    font-size: 28px;
+    font-weight: 800;
+    letter-spacing: -0.03em;
+    color: #ffffff;
 }
 
-.clear {
+/* ─── Checkout button ──────────────────────────── */
+.btn-checkout {
     width: 100%;
-    margin-top: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
     border: 0;
     border-radius: 2px;
-    background: var(--color-primary);
-    color: #ffffff;
+    background: #ffffff;
+    color: #080d16;
     font-weight: 700;
+    font-family: inherit;
     text-transform: uppercase;
     letter-spacing: 0.06em;
-    padding: 12px;
+    font-size: 12px;
+    padding: 14px 16px;
     cursor: pointer;
+    transition: background 0.2s ease, opacity 0.2s ease;
 }
 
-.checkout {
-    width: 100%;
-    margin-top: 14px;
-    border: 0;
-    border-radius: 2px;
-    background: var(--color-text);
-    color: #ffffff;
-    font-weight: 700;
-    text-transform: uppercase;
-    letter-spacing: 0.04em;
-    padding: 12px;
-    cursor: pointer;
+.btn-checkout:hover:not(:disabled) {
+    background: rgba(255, 255, 255, 0.88);
 }
 
-.checkout:hover {
-    opacity: 0.92;
-}
-
-.checkout:disabled {
-    opacity: 0.55;
+.btn-checkout:disabled {
+    opacity: 0.4;
     cursor: not-allowed;
 }
 
+/* ─── Spinner ──────────────────────────────────── */
+.spin-icon {
+    animation: spin 0.9s linear infinite;
+}
+
+@keyframes spin {
+    to { transform: rotate(360deg); }
+}
+
+/* ─── Error ────────────────────────────────────── */
 .checkout-error {
-    margin: 8px 0 0;
-    color: #c0392b;
-    font-size: 13px;
+    margin: 10px 0 0;
+    color: #f87171;
+    font-size: 12px;
+    line-height: 1.55;
     text-align: center;
 }
 
-.clear:hover {
-    background: var(--color-primary-strong);
+/* ─── Clear button ─────────────────────────────── */
+.btn-clear {
+    width: 100%;
+    margin-top: 10px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 2px;
+    background: transparent;
+    color: rgba(255, 255, 255, 0.4);
+    font-weight: 600;
+    font-family: inherit;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    font-size: 11px;
+    padding: 11px;
+    cursor: pointer;
+    transition: border-color 0.2s ease, color 0.2s ease, background 0.2s ease;
 }
 
-.clear:disabled {
-    opacity: 0.55;
+.btn-clear:hover:not(:disabled) {
+    border-color: rgba(255, 255, 255, 0.2);
+    color: rgba(255, 255, 255, 0.7);
+    background: rgba(255, 255, 255, 0.04);
+}
+
+.btn-clear:disabled {
+    opacity: 0.3;
     cursor: not-allowed;
 }
 
+/* ─── Item transitions ─────────────────────────── */
 .cart-item-enter-active,
 .cart-item-leave-active {
-    transition: all 0.35s ease;
+    transition: opacity 0.3s ease, transform 0.3s ease;
 }
 
 .cart-item-enter-from,
 .cart-item-leave-to {
     opacity: 0;
-    transform: translateX(18px);
+    transform: translateX(16px);
 }
 
 .cart-item-move {
-    transition: transform 0.35s ease;
+    transition: transform 0.3s ease;
 }
 
-@keyframes fadeIn {
-    from {
-        opacity: 0;
-        transform: translateY(14px);
-    }
-    to {
-        opacity: 1;
-        transform: translateY(0);
-    }
-}
-
+/* ─── Responsive ───────────────────────────────── */
 @media (max-width: 640px) {
-    .head h2 {
-        font-size: 28px;
-    }
-
-    .total-row h3 {
-        font-size: 34px;
+    .total-amount {
+        font-size: 24px;
     }
 }
 </style>

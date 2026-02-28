@@ -16,7 +16,7 @@
     color: #fff;
     padding: 14px 0;
     overflow: hidden;
-    margin-top: 22px;
+    margin-top: 0;
 }
 
 .marquee-viewport {

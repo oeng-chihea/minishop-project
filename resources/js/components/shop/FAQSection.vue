@@ -100,16 +100,19 @@ const faqs = [
 </script>
 
 <style scoped>
+/* ─── Section ─────────────────────────────────── */
 .faq-section {
-    padding: 80px 0;
+    padding: 88px 0 100px;
+    background: #080d16;
 }
 
 .container {
     max-width: 1240px;
     margin: 0 auto;
-    padding: 0 22px;
+    padding: 0 24px;
 }
 
+/* ─── Fade-in wrapper ─────────────────────────── */
 .faq-inner {
     opacity: 0;
     transform: translateY(28px);
@@ -121,43 +124,44 @@ const faqs = [
     transform: translateY(0);
 }
 
+/* ─── Head ────────────────────────────────────── */
 .faq-head {
     text-align: center;
-    margin-bottom: 52px;
+    margin-bottom: 56px;
 }
 
 .kicker {
     display: inline-block;
     font-size: 11px;
     font-weight: 700;
-    letter-spacing: 0.14em;
+    letter-spacing: 0.22em;
     text-transform: uppercase;
-    color: var(--color-accent);
-    margin-bottom: 12px;
+    color: rgba(255,255,255,0.28);
+    margin-bottom: 14px;
 }
 
 h2 {
     margin: 0 0 12px;
-    font-size: 40px;
+    font-size: clamp(28px, 3.5vw, 40px);
     font-weight: 800;
     letter-spacing: -0.03em;
-    color: var(--color-text);
+    color: #ffffff;
 }
 
 .faq-head p {
-    color: var(--color-muted);
+    color: rgba(255,255,255,0.4);
     font-size: 16px;
     margin: 0;
 }
 
-/* List */
+/* ─── List ────────────────────────────────────── */
 .faq-list {
     max-width: 760px;
     margin: 0 auto;
 }
 
 .faq-item {
-    border-bottom: 1px solid var(--color-line);
+    border-bottom: 1px solid rgba(255,255,255,0.07);
     opacity: 0;
     transform: translateY(12px);
     transition:
@@ -171,10 +175,10 @@ h2 {
 }
 
 .faq-item:first-child {
-    border-top: 1px solid var(--color-line);
+    border-top: 1px solid rgba(255,255,255,0.07);
 }
 
-/* Question button */
+/* ─── Question button ─────────────────────────── */
 .faq-question {
     width: 100%;
     background: transparent;
@@ -186,35 +190,35 @@ h2 {
     padding: 22px 0;
     text-align: left;
     font-size: 16px;
-    font-weight: 700;
-    color: var(--color-text);
+    font-weight: 600;
+    color: rgba(255,255,255,0.75);
     cursor: pointer;
     font-family: inherit;
     transition: color 0.2s ease;
 }
 
 .faq-question:hover {
-    color: var(--color-primary);
+    color: #ffffff;
     filter: none;
 }
 
 .faq-item.open .faq-question {
-    color: var(--color-primary);
+    color: #ffffff;
 }
 
 .faq-icon {
     flex-shrink: 0;
-    color: var(--color-muted);
+    color: rgba(255,255,255,0.25);
     display: flex;
     align-items: center;
     transition: color 0.25s ease;
 }
 
 .faq-item.open .faq-icon {
-    color: var(--color-primary);
+    color: rgba(255,255,255,0.7);
 }
 
-/* Answer */
+/* ─── Answer ──────────────────────────────────── */
 .faq-answer {
     max-height: 0;
     overflow: hidden;
@@ -227,19 +231,16 @@ h2 {
 
 .faq-answer p {
     margin: 0;
-    padding: 0 0 22px;
-    color: var(--color-muted);
+    padding: 0 0 24px;
+    color: rgba(255,255,255,0.45);
     font-size: 15px;
-    line-height: 1.7;
+    line-height: 1.75;
 }
 
+/* ─── Responsive ──────────────────────────────── */
 @media (max-width: 640px) {
     .faq-section {
-        padding: 52px 0;
-    }
-
-    h2 {
-        font-size: 28px;
+        padding: 60px 0 72px;
     }
 
     .faq-question {
