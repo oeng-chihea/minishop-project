@@ -23277,6 +23277,70 @@ function _arrayWithHoles(r) { if (Array.isArray(r)) return r; }
     __expose();
     var sectionRef = (0,vue__WEBPACK_IMPORTED_MODULE_0__.ref)(null);
     var isVisible = (0,vue__WEBPACK_IMPORTED_MODULE_0__.ref)(false);
+    var paused = (0,vue__WEBPACK_IMPORTED_MODULE_0__.ref)(false);
+    var stats = (0,vue__WEBPACK_IMPORTED_MODULE_0__.reactive)([{
+      target: 1200,
+      displayed: 0,
+      suffix: '+',
+      label: 'Happy Shoppers',
+      accent: '#3b82f6'
+    }, {
+      target: 98,
+      displayed: 0,
+      suffix: '%',
+      label: '5-Star Reviews',
+      accent: '#10b981'
+    }, {
+      target: 9,
+      displayed: 0,
+      suffix: '',
+      label: 'Curated Styles',
+      accent: '#a78bfa'
+    }, {
+      target: 3,
+      displayed: 0,
+      suffix: '',
+      label: 'Collections',
+      accent: '#f5a623'
+    }]);
+    var quotes = [{
+      text: 'Absolutely love my sneakers',
+      from: 'Sophea M.'
+    }, {
+      text: 'Fast delivery, perfect fit',
+      from: 'Dara C.'
+    }, {
+      text: 'ABA checkout was instant',
+      from: 'Leakena R.'
+    }, {
+      text: 'Best shoes I\'ve ever owned',
+      from: 'Virak P.'
+    }, {
+      text: 'Super lightweight and comfy',
+      from: 'Chanthy L.'
+    }, {
+      text: 'Arrived faster than expected',
+      from: 'Borey K.'
+    }, {
+      text: 'Amazing quality for the price',
+      from: 'Maly S.'
+    }, {
+      text: 'My go-to for everyday wear',
+      from: 'Sokha T.'
+    }];
+    function countUp() {
+      var DURATION = 1600;
+      var STEPS = 60;
+      stats.forEach(function (s) {
+        var step = 0;
+        var inc = s.target / STEPS;
+        var t = setInterval(function () {
+          step++;
+          s.displayed = step < STEPS ? Math.round(inc * step) : s.target;
+          if (step >= STEPS) clearInterval(t);
+        }, DURATION / STEPS);
+      });
+    }
     var observer;
     (0,vue__WEBPACK_IMPORTED_MODULE_0__.onMounted)(function () {
       observer = new IntersectionObserver(function (_ref2) {
@@ -23284,10 +23348,11 @@ function _arrayWithHoles(r) { if (Array.isArray(r)) return r; }
           entry = _ref3[0];
         if (entry.isIntersecting) {
           isVisible.value = true;
+          countUp();
           observer.disconnect();
         }
       }, {
-        threshold: 0.1
+        threshold: 0.15
       });
       if (sectionRef.value) observer.observe(sectionRef.value);
     });
@@ -23295,60 +23360,21 @@ function _arrayWithHoles(r) { if (Array.isArray(r)) return r; }
       var _observer;
       return (_observer = observer) === null || _observer === void 0 ? void 0 : _observer.disconnect();
     });
-    var testimonials = [{
-      name: 'Sophea Mok',
-      location: 'Phnom Penh, KH',
-      rating: 5,
-      review: 'The Basic T-Shirt is honestly the softest thing I own. Great quality for the price and arrived super fast. Will definitely be ordering more colors.',
-      product: 'Basic T-Shirt',
-      color: '#4a7fa5'
-    }, {
-      name: 'Dara Chea',
-      location: 'Siem Reap, KH',
-      rating: 5,
-      review: 'Bought the Trail Backpack for a trip and it held up perfectly. Tons of space, looks clean, and the build quality exceeded my expectations at this price point.',
-      product: 'Trail Backpack',
-      color: '#5e8a6a'
-    }, {
-      name: 'Leakena Ros',
-      location: 'Battambang, KH',
-      rating: 5,
-      review: 'My Canvas Tote Bag gets compliments every single time I use it. The checkout was smooth and the ABA PayWay payment worked instantly. Love the experience.',
-      product: 'Canvas Tote Bag',
-      color: '#8a5e7a'
-    }, {
-      name: 'Virak Phorn',
-      location: 'Kampot, KH',
-      rating: 5,
-      review: 'Runner Sneakers are incredibly lightweight. Wore them for a full day walking around and zero discomfort. minishopkh has become my go-to for everyday essentials.',
-      product: 'Runner Sneakers',
-      color: '#7a6a4a'
-    }, {
-      name: 'Chanthy Lim',
-      location: 'Phnom Penh, KH',
-      rating: 5,
-      review: 'The Gym Water Bottle keeps my drinks cold for hours. Looks premium, feels solid, and no leaks at all. Really happy with this purchase!',
-      product: 'Gym Water Bottle',
-      color: '#4a6a8a'
-    }, {
-      name: 'Borey Kim',
-      location: 'Kandal, KH',
-      rating: 5,
-      review: 'Free shipping arrived faster than expected. The Packing Cubes Set made packing my bag so much easier. Great product, great service — what more can you ask for?',
-      product: 'Packing Cubes Set',
-      color: '#6a7a4a'
-    }];
     var __returned__ = {
       sectionRef: sectionRef,
       isVisible: isVisible,
+      paused: paused,
+      stats: stats,
+      quotes: quotes,
+      countUp: countUp,
       get observer() {
         return observer;
       },
       set observer(v) {
         observer = v;
       },
-      testimonials: testimonials,
       ref: vue__WEBPACK_IMPORTED_MODULE_0__.ref,
+      reactive: vue__WEBPACK_IMPORTED_MODULE_0__.reactive,
       onMounted: vue__WEBPACK_IMPORTED_MODULE_0__.onMounted,
       onBeforeUnmount: vue__WEBPACK_IMPORTED_MODULE_0__.onBeforeUnmount
     };
@@ -24347,66 +24373,83 @@ function _arrayWithoutHoles(r) { if (Array.isArray(r)) return _arrayLikeToArray(
 function _arrayLikeToArray(r, a) { (null == a || a > r.length) && (a = r.length); for (var e = 0, n = Array(a); e < a; e++) n[e] = r[e]; return n; }
 
 var _hoisted_1 = {
-  "class": "testimonials",
+  "class": "community",
   ref: "sectionRef",
-  id: "testimonials"
+  id: "community"
 };
 var _hoisted_2 = {
   "class": "container"
 };
 var _hoisted_3 = {
-  "class": "card-top"
+  "class": "stat-num"
 };
-var _hoisted_4 = ["aria-label"];
-var _hoisted_5 = {
-  "class": "review-text"
+var _hoisted_4 = {
+  "class": "stat-label"
 };
+var _hoisted_5 = ["aria-hidden"];
 var _hoisted_6 = {
-  "class": "reviewer"
+  "class": "chip-text"
 };
 var _hoisted_7 = {
-  "class": "reviewer-info"
-};
-var _hoisted_8 = {
-  "class": "product-tag"
+  "class": "chip-from"
 };
 function render(_ctx, _cache, $props, $setup, $data, $options) {
-  return (0,vue__WEBPACK_IMPORTED_MODULE_0__.openBlock)(), (0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementBlock)("section", _hoisted_1, [(0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementVNode)("div", _hoisted_2, [(0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementVNode)("div", {
-    "class": (0,vue__WEBPACK_IMPORTED_MODULE_0__.normalizeClass)(["section-head", {
+  return (0,vue__WEBPACK_IMPORTED_MODULE_0__.openBlock)(), (0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementBlock)("section", _hoisted_1, [(0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementVNode)("div", _hoisted_2, [(0,vue__WEBPACK_IMPORTED_MODULE_0__.createCommentVNode)(" Header "), (0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementVNode)("div", {
+    "class": (0,vue__WEBPACK_IMPORTED_MODULE_0__.normalizeClass)(["head", {
       'is-visible': $setup.isVisible
     }])
-  }, _toConsumableArray(_cache[0] || (_cache[0] = [(0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementVNode)("span", {
+  }, _toConsumableArray(_cache[2] || (_cache[2] = [(0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementVNode)("span", {
     "class": "kicker"
-  }, "Happy Customers", -1 /* CACHED */), (0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementVNode)("h2", null, "What people are saying", -1 /* CACHED */), (0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementVNode)("p", {
-    "class": "section-desc"
-  }, "Real reviews from real customers who love what they find at minishopkh.", -1 /* CACHED */)])), 2 /* CLASS */), (0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementVNode)("div", {
-    "class": (0,vue__WEBPACK_IMPORTED_MODULE_0__.normalizeClass)(["testimonials-grid", {
+  }, "Community Love", -1 /* CACHED */), (0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementVNode)("h2", null, "Loved by shoppers across Cambodia", -1 /* CACHED */), (0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementVNode)("p", {
+    "class": "head-desc"
+  }, "Real numbers from real people who trust minishopkh.", -1 /* CACHED */)])), 2 /* CLASS */), (0,vue__WEBPACK_IMPORTED_MODULE_0__.createCommentVNode)(" Stat grid "), (0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementVNode)("div", {
+    "class": (0,vue__WEBPACK_IMPORTED_MODULE_0__.normalizeClass)(["stats-grid", {
       'is-visible': $setup.isVisible
     }])
-  }, [((0,vue__WEBPACK_IMPORTED_MODULE_0__.openBlock)(), (0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementBlock)(vue__WEBPACK_IMPORTED_MODULE_0__.Fragment, null, (0,vue__WEBPACK_IMPORTED_MODULE_0__.renderList)($setup.testimonials, function (t, i) {
-    return (0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementVNode)("article", {
-      "class": "testimonial-card",
+  }, [((0,vue__WEBPACK_IMPORTED_MODULE_0__.openBlock)(true), (0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementBlock)(vue__WEBPACK_IMPORTED_MODULE_0__.Fragment, null, (0,vue__WEBPACK_IMPORTED_MODULE_0__.renderList)($setup.stats, function (s, i) {
+    return (0,vue__WEBPACK_IMPORTED_MODULE_0__.openBlock)(), (0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementBlock)("div", {
+      "class": "stat-cell",
       key: i,
       style: (0,vue__WEBPACK_IMPORTED_MODULE_0__.normalizeStyle)({
-        '--delay': i * 0.14 + 's'
+        '--i': i
       })
-    }, [(0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementVNode)("div", _hoisted_3, [(0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementVNode)("div", {
-      "class": "stars",
-      "aria-label": "".concat(t.rating, " out of 5 stars")
-    }, [((0,vue__WEBPACK_IMPORTED_MODULE_0__.openBlock)(), (0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementBlock)(vue__WEBPACK_IMPORTED_MODULE_0__.Fragment, null, (0,vue__WEBPACK_IMPORTED_MODULE_0__.renderList)(5, function (s) {
-      return (0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementVNode)("span", {
-        key: s,
-        "class": (0,vue__WEBPACK_IMPORTED_MODULE_0__.normalizeClass)(s <= t.rating ? 'star-filled' : 'star-empty')
-      }, "★", 2 /* CLASS */);
-    }), 64 /* STABLE_FRAGMENT */))], 8 /* PROPS */, _hoisted_4), _cache[1] || (_cache[1] = (0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementVNode)("span", {
-      "class": "verified"
-    }, "✓ Verified", -1 /* CACHED */))]), (0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementVNode)("p", _hoisted_5, "\"" + (0,vue__WEBPACK_IMPORTED_MODULE_0__.toDisplayString)(t.review) + "\"", 1 /* TEXT */), (0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementVNode)("div", _hoisted_6, [(0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementVNode)("div", {
-      "class": "avatar",
+    }, [(0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementVNode)("span", _hoisted_3, (0,vue__WEBPACK_IMPORTED_MODULE_0__.toDisplayString)(s.displayed) + (0,vue__WEBPACK_IMPORTED_MODULE_0__.toDisplayString)(s.suffix), 1 /* TEXT */), (0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementVNode)("span", {
+      "class": "stat-bar",
       style: (0,vue__WEBPACK_IMPORTED_MODULE_0__.normalizeStyle)({
-        '--avatar-bg': t.color
+        '--accent': s.accent
       })
-    }, (0,vue__WEBPACK_IMPORTED_MODULE_0__.toDisplayString)(t.name[0]), 5 /* TEXT, STYLE */), (0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementVNode)("div", _hoisted_7, [(0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementVNode)("strong", null, (0,vue__WEBPACK_IMPORTED_MODULE_0__.toDisplayString)(t.name), 1 /* TEXT */), (0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementVNode)("span", null, (0,vue__WEBPACK_IMPORTED_MODULE_0__.toDisplayString)(t.location), 1 /* TEXT */)]), (0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementVNode)("div", _hoisted_8, (0,vue__WEBPACK_IMPORTED_MODULE_0__.toDisplayString)(t.product), 1 /* TEXT */)])], 4 /* STYLE */);
-  }), 64 /* STABLE_FRAGMENT */))], 2 /* CLASS */)])], 512 /* NEED_PATCH */);
+    }, null, 4 /* STYLE */), (0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementVNode)("span", _hoisted_4, (0,vue__WEBPACK_IMPORTED_MODULE_0__.toDisplayString)(s.label), 1 /* TEXT */)], 4 /* STYLE */);
+  }), 128 /* KEYED_FRAGMENT */))], 2 /* CLASS */)]), (0,vue__WEBPACK_IMPORTED_MODULE_0__.createCommentVNode)(" Infinite marquee "), (0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementVNode)("div", {
+    "class": (0,vue__WEBPACK_IMPORTED_MODULE_0__.normalizeClass)(["marquee-wrap", {
+      'is-visible': $setup.isVisible
+    }])
+  }, [(0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementVNode)("div", {
+    "class": "marquee-track",
+    style: (0,vue__WEBPACK_IMPORTED_MODULE_0__.normalizeStyle)({
+      animationPlayState: $setup.paused ? 'paused' : 'running'
+    }),
+    onMouseenter: _cache[0] || (_cache[0] = function ($event) {
+      return $setup.paused = true;
+    }),
+    onMouseleave: _cache[1] || (_cache[1] = function ($event) {
+      return $setup.paused = false;
+    })
+  }, [(0,vue__WEBPACK_IMPORTED_MODULE_0__.createCommentVNode)(" Duplicate for seamless loop "), ((0,vue__WEBPACK_IMPORTED_MODULE_0__.openBlock)(), (0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementBlock)(vue__WEBPACK_IMPORTED_MODULE_0__.Fragment, null, (0,vue__WEBPACK_IMPORTED_MODULE_0__.renderList)(2, function (n) {
+    return (0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementVNode)("div", {
+      "class": "marquee-set",
+      key: n,
+      "aria-hidden": n === 2 ? 'true' : undefined
+    }, [((0,vue__WEBPACK_IMPORTED_MODULE_0__.openBlock)(), (0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementBlock)(vue__WEBPACK_IMPORTED_MODULE_0__.Fragment, null, (0,vue__WEBPACK_IMPORTED_MODULE_0__.renderList)($setup.quotes, function (q, i) {
+      return (0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementVNode)("div", {
+        key: i,
+        "class": "chip"
+      }, [_cache[3] || (_cache[3] = (0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementVNode)("span", {
+        "class": "chip-stars"
+      }, "★★★★★", -1 /* CACHED */)), (0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementVNode)("span", _hoisted_6, "\"" + (0,vue__WEBPACK_IMPORTED_MODULE_0__.toDisplayString)(q.text) + "\"", 1 /* TEXT */), _cache[4] || (_cache[4] = (0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementVNode)("span", {
+        "class": "chip-sep"
+      }, "·", -1 /* CACHED */)), (0,vue__WEBPACK_IMPORTED_MODULE_0__.createElementVNode)("span", _hoisted_7, (0,vue__WEBPACK_IMPORTED_MODULE_0__.toDisplayString)(q.from), 1 /* TEXT */)]);
+    }), 64 /* STABLE_FRAGMENT */))], 8 /* PROPS */, _hoisted_5);
+  }), 64 /* STABLE_FRAGMENT */))], 36 /* STYLE, NEED_HYDRATION */)], 2 /* CLASS */)], 512 /* NEED_PATCH */);
 }
 
 /***/ },
@@ -24874,7 +24917,7 @@ __webpack_require__.r(__webpack_exports__);
 
 var ___CSS_LOADER_EXPORT___ = _node_modules_css_loader_dist_runtime_api_js__WEBPACK_IMPORTED_MODULE_0___default()(function(i){return i[1]});
 // Module
-___CSS_LOADER_EXPORT___.push([module.id, "\n/* ─── Section ─────────────────────────────────── */\n.testimonials[data-v-ca0ae9ba] {\n    padding: 88px 0 100px;\n    background: #0a0f1a;\n}\n.container[data-v-ca0ae9ba] {\n    max-width: 1240px;\n    margin: 0 auto;\n    padding: 0 24px;\n}\n\n/* ─── Head ────────────────────────────────────── */\n.section-head[data-v-ca0ae9ba] {\n    text-align: center;\n    margin-bottom: 56px;\n    opacity: 0;\n    transform: translateY(24px);\n    transition: opacity 0.7s ease, transform 0.7s ease;\n}\n.section-head.is-visible[data-v-ca0ae9ba] {\n    opacity: 1;\n    transform: translateY(0);\n}\n.kicker[data-v-ca0ae9ba] {\n    display: inline-block;\n    font-size: 11px;\n    font-weight: 700;\n    letter-spacing: 0.22em;\n    text-transform: uppercase;\n    color: rgba(255,255,255,0.28);\n    margin-bottom: 14px;\n}\nh2[data-v-ca0ae9ba] {\n    margin: 0 0 12px;\n    font-size: clamp(28px, 3.5vw, 40px);\n    font-weight: 800;\n    letter-spacing: -0.03em;\n    color: #ffffff;\n}\n.section-desc[data-v-ca0ae9ba] {\n    color: rgba(255,255,255,0.4);\n    font-size: 16px;\n    margin: 0;\n    line-height: 1.5;\n}\n\n/* ─── Grid ────────────────────────────────────── */\n.testimonials-grid[data-v-ca0ae9ba] {\n    display: grid;\n    grid-template-columns: repeat(3, minmax(0, 1fr));\n    gap: 16px;\n}\n.testimonial-card[data-v-ca0ae9ba] {\n    background: #111827;\n    border: 1px solid rgba(255,255,255,0.06);\n    padding: 28px;\n    opacity: 0;\n    transform: translateY(24px);\n    transition:\n        opacity 0.6s ease var(--delay, 0s),\n        transform 0.6s ease var(--delay, 0s),\n        box-shadow 0.35s ease,\n        border-color 0.35s ease;\n}\n.testimonials-grid.is-visible .testimonial-card[data-v-ca0ae9ba] {\n    opacity: 1;\n    transform: translateY(0);\n}\n.testimonial-card[data-v-ca0ae9ba]:hover {\n    box-shadow: 0 20px 48px rgba(0,0,0,0.5);\n    border-color: rgba(255,255,255,0.12);\n}\n\n/* ─── Card top ────────────────────────────────── */\n.card-top[data-v-ca0ae9ba] {\n    display: flex;\n    align-items: center;\n    justify-content: space-between;\n    margin-bottom: 16px;\n}\n.stars[data-v-ca0ae9ba] {\n    display: flex;\n    gap: 2px;\n}\n.star-filled[data-v-ca0ae9ba] {\n    color: #f5a623;\n    font-size: 15px;\n}\n.star-empty[data-v-ca0ae9ba] {\n    color: rgba(255,255,255,0.15);\n    font-size: 15px;\n}\n.verified[data-v-ca0ae9ba] {\n    font-size: 11px;\n    font-weight: 700;\n    color: #10b981;\n    letter-spacing: 0.04em;\n}\n\n/* ─── Review text ─────────────────────────────── */\n.review-text[data-v-ca0ae9ba] {\n    font-size: 14.5px;\n    line-height: 1.7;\n    color: rgba(255,255,255,0.65);\n    margin: 0 0 24px;\n    font-style: italic;\n}\n\n/* ─── Reviewer ────────────────────────────────── */\n.reviewer[data-v-ca0ae9ba] {\n    display: flex;\n    align-items: center;\n    gap: 12px;\n}\n.avatar[data-v-ca0ae9ba] {\n    width: 38px;\n    height: 38px;\n    border-radius: 50%;\n    background: var(--avatar-bg);\n    color: #fff;\n    display: flex;\n    align-items: center;\n    justify-content: center;\n    font-size: 15px;\n    font-weight: 800;\n    flex-shrink: 0;\n}\n.reviewer-info[data-v-ca0ae9ba] {\n    flex: 1;\n}\n.reviewer-info strong[data-v-ca0ae9ba] {\n    display: block;\n    font-size: 13px;\n    color: #ffffff;\n    font-weight: 700;\n}\n.reviewer-info span[data-v-ca0ae9ba] {\n    display: block;\n    font-size: 12px;\n    color: rgba(255,255,255,0.3);\n    margin-top: 2px;\n}\n.product-tag[data-v-ca0ae9ba] {\n    font-size: 11px;\n    font-weight: 700;\n    letter-spacing: 0.04em;\n    color: rgba(255,255,255,0.4);\n    background: rgba(255,255,255,0.06);\n    padding: 4px 10px;\n    border-radius: 20px;\n    white-space: nowrap;\n}\n\n/* ─── Responsive ──────────────────────────────── */\n@media (max-width: 980px) {\n.testimonials-grid[data-v-ca0ae9ba] {\n        grid-template-columns: repeat(2, minmax(0, 1fr));\n}\n}\n@media (max-width: 640px) {\n.testimonials[data-v-ca0ae9ba] {\n        padding: 60px 0 72px;\n}\n.testimonials-grid[data-v-ca0ae9ba] {\n        grid-template-columns: 1fr;\n}\n.product-tag[data-v-ca0ae9ba] {\n        display: none;\n}\n}\n", ""]);
+___CSS_LOADER_EXPORT___.push([module.id, "\n/* ─── Section ─────────────────────────────────── */\n.community[data-v-ca0ae9ba] {\n    padding: 88px 0 0;\n    background: #0a0f1a;\n    overflow: hidden;\n}\n.container[data-v-ca0ae9ba] {\n    max-width: 1240px;\n    margin: 0 auto;\n    padding: 0 24px;\n}\n\n/* ─── Header ──────────────────────────────────── */\n.head[data-v-ca0ae9ba] {\n    text-align: center;\n    margin-bottom: 64px;\n    opacity: 0;\n    transform: translateY(24px);\n    transition: opacity 0.7s ease, transform 0.7s ease;\n}\n.head.is-visible[data-v-ca0ae9ba] {\n    opacity: 1;\n    transform: translateY(0);\n}\n.kicker[data-v-ca0ae9ba] {\n    display: inline-block;\n    font-size: 11px;\n    font-weight: 700;\n    letter-spacing: 0.22em;\n    text-transform: uppercase;\n    color: rgba(255, 255, 255, 0.28);\n    margin-bottom: 14px;\n}\nh2[data-v-ca0ae9ba] {\n    margin: 0 0 12px;\n    font-size: clamp(28px, 3.5vw, 40px);\n    font-weight: 800;\n    letter-spacing: -0.03em;\n    color: #ffffff;\n}\n.head-desc[data-v-ca0ae9ba] {\n    color: rgba(255, 255, 255, 0.4);\n    font-size: 16px;\n    margin: 0;\n    line-height: 1.5;\n}\n\n/* ─── Stats grid ──────────────────────────────── */\n.stats-grid[data-v-ca0ae9ba] {\n    display: grid;\n    grid-template-columns: repeat(4, 1fr);\n    gap: 1px;\n    background: rgba(255, 255, 255, 0.06);\n    border: 1px solid rgba(255, 255, 255, 0.06);\n    margin-bottom: 72px;\n    opacity: 0;\n    transform: translateY(20px);\n    transition: opacity 0.7s ease 0.18s, transform 0.7s ease 0.18s;\n}\n.stats-grid.is-visible[data-v-ca0ae9ba] {\n    opacity: 1;\n    transform: translateY(0);\n}\n.stat-cell[data-v-ca0ae9ba] {\n    background: #0e1420;\n    padding: 44px 32px 36px;\n    display: flex;\n    flex-direction: column;\n    align-items: flex-start;\n    gap: 10px;\n    transition: background 0.25s ease;\n}\n.stat-cell[data-v-ca0ae9ba]:hover {\n    background: #111827;\n}\n.stat-num[data-v-ca0ae9ba] {\n    font-size: clamp(42px, 4.5vw, 60px);\n    font-weight: 800;\n    letter-spacing: -0.04em;\n    color: #ffffff;\n    line-height: 1;\n}\n.stat-bar[data-v-ca0ae9ba] {\n    display: block;\n    width: 32px;\n    height: 3px;\n    border-radius: 2px;\n    background: var(--accent);\n}\n.stat-label[data-v-ca0ae9ba] {\n    font-size: 12px;\n    font-weight: 700;\n    letter-spacing: 0.08em;\n    text-transform: uppercase;\n    color: rgba(255, 255, 255, 0.38);\n}\n\n/* ─── Marquee ─────────────────────────────────── */\n.marquee-wrap[data-v-ca0ae9ba] {\n    padding: 44px 0 88px;\n    border-top: 1px solid rgba(255, 255, 255, 0.06);\n    overflow: hidden;\n    opacity: 0;\n    transition: opacity 0.8s ease 0.36s;\n}\n.marquee-wrap.is-visible[data-v-ca0ae9ba] {\n    opacity: 1;\n}\n.marquee-track[data-v-ca0ae9ba] {\n    display: flex;\n    width: -moz-max-content;\n    width: max-content;\n    animation: slide-ca0ae9ba 34s linear infinite;\n}\n@keyframes slide-ca0ae9ba {\nfrom { transform: translateX(0);\n}\nto   { transform: translateX(-50%);\n}\n}\n.marquee-set[data-v-ca0ae9ba] {\n    display: flex;\n    gap: 12px;\n    padding-right: 12px;\n}\n.chip[data-v-ca0ae9ba] {\n    display: inline-flex;\n    align-items: center;\n    gap: 10px;\n    background: #111827;\n    border: 1px solid rgba(255, 255, 255, 0.07);\n    border-radius: 100px;\n    padding: 11px 22px;\n    white-space: nowrap;\n    cursor: default;\n    transition: background 0.25s ease, border-color 0.25s ease;\n}\n.chip[data-v-ca0ae9ba]:hover {\n    background: #1a2234;\n    border-color: rgba(255, 255, 255, 0.14);\n}\n.chip-stars[data-v-ca0ae9ba] {\n    font-size: 10px;\n    color: #f5a623;\n    letter-spacing: 1.5px;\n}\n.chip-text[data-v-ca0ae9ba] {\n    font-size: 13px;\n    color: rgba(255, 255, 255, 0.7);\n    font-style: italic;\n}\n.chip-sep[data-v-ca0ae9ba] {\n    font-size: 16px;\n    color: rgba(255, 255, 255, 0.18);\n}\n.chip-from[data-v-ca0ae9ba] {\n    font-size: 12px;\n    font-weight: 700;\n    color: rgba(255, 255, 255, 0.32);\n}\n\n/* ─── Responsive ──────────────────────────────── */\n@media (max-width: 860px) {\n.stats-grid[data-v-ca0ae9ba] {\n        grid-template-columns: repeat(2, 1fr);\n}\n.stats-grid[data-v-ca0ae9ba] {\n        margin-bottom: 52px;\n}\n}\n@media (max-width: 540px) {\n.community[data-v-ca0ae9ba] {\n        padding-top: 60px;\n}\n.head[data-v-ca0ae9ba] {\n        margin-bottom: 44px;\n}\n.stats-grid[data-v-ca0ae9ba] {\n        grid-template-columns: 1fr 1fr;\n        margin-bottom: 40px;\n}\n.stat-cell[data-v-ca0ae9ba] {\n        padding: 28px 20px 24px;\n}\n.marquee-wrap[data-v-ca0ae9ba] {\n        padding: 36px 0 60px;\n}\n}\n", ""]);
 // Exports
 /* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = (___CSS_LOADER_EXPORT___);
 
@@ -24922,7 +24965,7 @@ __webpack_require__.r(__webpack_exports__);
 
 var ___CSS_LOADER_EXPORT___ = _node_modules_css_loader_dist_runtime_api_js__WEBPACK_IMPORTED_MODULE_0___default()(function(i){return i[1]});
 // Module
-___CSS_LOADER_EXPORT___.push([module.id, "\n/* ─── Section ─────────────────────────────────── */\n.strip-wrap[data-v-25250185] {\n    background: #0a0f1a;\n    padding: 88px 0 100px;\n    overflow: hidden;\n}\n.strip-inner[data-v-25250185] {\n    max-width: 1240px;\n    margin: 0 auto;\n    padding: 0 24px;\n}\n\n/* ─── Header ──────────────────────────────────── */\n.strip-header[data-v-25250185] {\n    margin-bottom: 60px;\n    opacity: 0;\n    transform: translateY(20px);\n    transition: opacity 0.7s ease, transform 0.7s ease;\n}\n.strip-header.header-in[data-v-25250185] {\n    opacity: 1;\n    transform: translateY(0);\n}\n.strip-eyebrow[data-v-25250185] {\n    display: block;\n    font-size: 11px;\n    font-weight: 700;\n    letter-spacing: 0.22em;\n    text-transform: uppercase;\n    color: rgba(255,255,255,0.28);\n    margin-bottom: 12px;\n}\n.strip-heading[data-v-25250185] {\n    margin: 0;\n    font-size: clamp(26px, 3vw, 36px);\n    font-weight: 700;\n    letter-spacing: -0.03em;\n    color: #ffffff;\n    line-height: 1.1;\n}\n\n/* ─── Grid ────────────────────────────────────── */\n.cards-row[data-v-25250185] {\n    display: grid;\n    grid-template-columns: repeat(4, minmax(0, 1fr));\n    gap: 20px;\n    align-items: end;        /* so tilted bottoms align */\n}\n\n/* ─── Card wrapper ────────────────────────────── */\n\n/* BEFORE scroll-in: invisible, not interactable */\n.card-wrap[data-v-25250185] {\n    opacity: 0;\n    pointer-events: none;\n    /* fast no-transition so it just hides */\n    transition: opacity 0.01s;\n}\n\n/*\n * AFTER scroll-in: card is visible and SLEEPING (tilted).\n * Hover wakes it up (straightens).\n * This mirrors the CodePen logic exactly.\n */\n.card-wrap.card-entered[data-v-25250185] {\n    opacity: 1;\n    pointer-events: auto;\n\n    /* ── sleeping pose ── */\n    transform-origin: 50% 100%;          /* pivot at bottom centre */\n    transform: rotate(-14deg) skewX(8deg) scale(0.86);\n    box-shadow: -14px 24px 48px rgba(0,0,0,0.65);\n    transition:\n        opacity   0.5s ease var(--delay),\n        transform 0.55s cubic-bezier(0.22, 1, 0.36, 1),\n        box-shadow 0.55s cubic-bezier(0.22, 1, 0.36, 1);\n}\n\n/* ── wake-up on hover ── */\n.card-wrap.card-entered[data-v-25250185]:hover {\n    transform: rotate(0deg) skewX(0deg) scale(1) translateY(-6px);\n    box-shadow: 0 28px 60px rgba(0,0,0,0.5);\n}\n\n/* ─── Card article ────────────────────────────── */\n.value-card[data-v-25250185] {\n    position: relative;\n    background: #111827;\n    border: 1px solid rgba(255,255,255,0.06);\n    border-radius: 4px;\n    overflow: hidden;\n    transition: background 0.35s ease;\n}\n.card-wrap.card-entered:hover .value-card[data-v-25250185] {\n    background: #141c2e;\n}\n\n/* ─── Content ─────────────────────────────────── */\n.card-content[data-v-25250185] {\n    padding: 32px 28px 36px 32px;\n}\n.card-num[data-v-25250185] {\n    display: block;\n    font-size: 11px;\n    font-weight: 800;\n    letter-spacing: 0.18em;\n    color: rgba(255,255,255,0.25);\n    margin-bottom: 18px;\n    transition: color 0.3s ease;\n}\n.card-wrap.card-entered:hover .card-num[data-v-25250185] {\n    color: rgba(255,255,255,0.5);\n}\n.card-title[data-v-25250185] {\n    margin: 0 0 12px;\n    font-size: 16px;\n    font-weight: 700;\n    letter-spacing: -0.015em;\n    color: #ffffff;\n    line-height: 1.25;\n}\n.card-desc[data-v-25250185] {\n    margin: 0;\n    font-size: 13.5px;\n    line-height: 1.72;\n    color: rgba(255,255,255,0.4);\n    transition: color 0.35s ease;\n}\n.card-wrap.card-entered:hover .card-desc[data-v-25250185] {\n    color: rgba(255,255,255,0.7);\n}\n\n/* ─── Responsive ──────────────────────────────── */\n@media (max-width: 980px) {\n.cards-row[data-v-25250185] {\n        grid-template-columns: repeat(2, minmax(0, 1fr));\n}\n}\n@media (max-width: 540px) {\n.cards-row[data-v-25250185] {\n        grid-template-columns: 1fr;\n        gap: 16px;\n}\n.strip-wrap[data-v-25250185] {\n        padding: 64px 0 72px;\n}\n}\n", ""]);
+___CSS_LOADER_EXPORT___.push([module.id, "\n/* ─── Section ─────────────────────────────────── */\n.strip-wrap[data-v-25250185] {\n    background: #0a0f1a;\n    padding: 88px 0 100px;\n    overflow: hidden;\n}\n.strip-inner[data-v-25250185] {\n    max-width: 1480px;\n    margin: 0 auto;\n    padding: 0 24px;\n}\n\n/* ─── Header ──────────────────────────────────── */\n.strip-header[data-v-25250185] {\n    margin-bottom: 60px;\n    opacity: 0;\n    transform: translateY(20px);\n    transition: opacity 0.7s ease, transform 0.7s ease;\n}\n.strip-header.header-in[data-v-25250185] {\n    opacity: 1;\n    transform: translateY(0);\n}\n.strip-eyebrow[data-v-25250185] {\n    display: block;\n    font-size: 11px;\n    font-weight: 700;\n    letter-spacing: 0.22em;\n    text-transform: uppercase;\n    color: rgba(255,255,255,0.28);\n    margin-bottom: 12px;\n}\n.strip-heading[data-v-25250185] {\n    margin: 0;\n    font-size: clamp(26px, 3vw, 36px);\n    font-weight: 700;\n    letter-spacing: -0.03em;\n    color: #ffffff;\n    line-height: 1.1;\n}\n\n/* ─── Grid ────────────────────────────────────── */\n.cards-row[data-v-25250185] {\n    display: grid;\n    grid-template-columns: repeat(4, minmax(0, 1fr));\n    gap: 20px;\n    align-items: end;        /* so tilted bottoms align */\n}\n\n/* ─── Card wrapper ────────────────────────────── */\n\n/* BEFORE scroll-in: invisible, not interactable */\n.card-wrap[data-v-25250185] {\n    opacity: 0;\n    pointer-events: none;\n    /* fast no-transition so it just hides */\n    transition: opacity 0.01s;\n}\n\n/*\n * AFTER scroll-in: card is visible and SLEEPING (tilted).\n * Hover wakes it up (straightens).\n * This mirrors the CodePen logic exactly.\n */\n.card-wrap.card-entered[data-v-25250185] {\n    opacity: 1;\n    pointer-events: auto;\n\n    /* ── sleeping pose ── */\n    transform-origin: 50% 100%;          /* pivot at bottom centre */\n    transform: rotate(-18deg) skewX(10deg) scale(0.82);\n    box-shadow: -18px 30px 60px rgba(0,0,0,0.72);\n    transition:\n        opacity   0.5s ease var(--delay),\n        transform 0.55s cubic-bezier(0.22, 1, 0.36, 1),\n        box-shadow 0.55s cubic-bezier(0.22, 1, 0.36, 1);\n}\n\n/* ── wake-up on hover ── */\n.card-wrap.card-entered[data-v-25250185]:hover {\n    transform: rotate(0deg) skewX(0deg) scale(1) translateY(-6px);\n    box-shadow: 0 28px 60px rgba(0,0,0,0.5);\n}\n\n/* ─── Card article ────────────────────────────── */\n.value-card[data-v-25250185] {\n    position: relative;\n    background: #111827;\n    border: 1px solid rgba(255,255,255,0.06);\n    border-radius: 4px;\n    overflow: hidden;\n    transition: background 0.35s ease;\n}\n.card-wrap.card-entered:hover .value-card[data-v-25250185] {\n    background: #141c2e;\n}\n\n/* ─── Content ─────────────────────────────────── */\n.card-content[data-v-25250185] {\n    padding: 32px 28px 36px 32px;\n}\n.card-num[data-v-25250185] {\n    display: block;\n    font-size: 11px;\n    font-weight: 800;\n    letter-spacing: 0.18em;\n    color: rgba(255,255,255,0.25);\n    margin-bottom: 18px;\n    transition: color 0.3s ease;\n}\n.card-wrap.card-entered:hover .card-num[data-v-25250185] {\n    color: rgba(255,255,255,0.5);\n}\n.card-title[data-v-25250185] {\n    margin: 0 0 12px;\n    font-size: 16px;\n    font-weight: 700;\n    letter-spacing: -0.015em;\n    color: #ffffff;\n    line-height: 1.25;\n}\n.card-desc[data-v-25250185] {\n    margin: 0;\n    font-size: 13.5px;\n    line-height: 1.72;\n    color: rgba(255,255,255,0.4);\n    transition: color 0.35s ease;\n}\n.card-wrap.card-entered:hover .card-desc[data-v-25250185] {\n    color: rgba(255,255,255,0.7);\n}\n\n/* ─── Responsive ──────────────────────────────── */\n@media (max-width: 980px) {\n.cards-row[data-v-25250185] {\n        grid-template-columns: repeat(2, minmax(0, 1fr));\n}\n}\n@media (max-width: 540px) {\n.cards-row[data-v-25250185] {\n        grid-template-columns: 1fr;\n        gap: 16px;\n}\n.strip-wrap[data-v-25250185] {\n        padding: 64px 0 72px;\n}\n}\n", ""]);
 // Exports
 /* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = (___CSS_LOADER_EXPORT___);
 

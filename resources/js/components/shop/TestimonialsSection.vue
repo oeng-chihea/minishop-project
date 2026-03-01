@@ -1,123 +1,112 @@
 <template>
-    <section class="testimonials" ref="sectionRef" id="testimonials">
+    <section class="community" ref="sectionRef" id="community">
         <div class="container">
-            <div class="section-head" :class="{ 'is-visible': isVisible }">
-                <span class="kicker">Happy Customers</span>
-                <h2>What people are saying</h2>
-                <p class="section-desc">Real reviews from real customers who love what they find at minishopkh.</p>
+            <!-- Header -->
+            <div class="head" :class="{ 'is-visible': isVisible }">
+                <span class="kicker">Community Love</span>
+                <h2>Loved by shoppers across Cambodia</h2>
+                <p class="head-desc">Real numbers from real people who trust minishopkh.</p>
             </div>
 
-            <div class="testimonials-grid" :class="{ 'is-visible': isVisible }">
-                <article
-                    class="testimonial-card"
-                    v-for="(t, i) in testimonials"
+            <!-- Stat grid -->
+            <div class="stats-grid" :class="{ 'is-visible': isVisible }">
+                <div
+                    class="stat-cell"
+                    v-for="(s, i) in stats"
                     :key="i"
-                    :style="{ '--delay': (i * 0.14) + 's' }"
+                    :style="{ '--i': i }"
                 >
-                    <div class="card-top">
-                        <div class="stars" :aria-label="`${t.rating} out of 5 stars`">
-                            <span v-for="s in 5" :key="s" :class="s <= t.rating ? 'star-filled' : 'star-empty'">★</span>
-                        </div>
-                        <span class="verified">✓ Verified</span>
-                    </div>
+                    <span class="stat-num">{{ s.displayed }}{{ s.suffix }}</span>
+                    <span class="stat-bar" :style="{ '--accent': s.accent }"></span>
+                    <span class="stat-label">{{ s.label }}</span>
+                </div>
+            </div>
+        </div>
 
-                    <p class="review-text">"{{ t.review }}"</p>
-
-                    <div class="reviewer">
-                        <div class="avatar" :style="{ '--avatar-bg': t.color }">
-                            {{ t.name[0] }}
-                        </div>
-                        <div class="reviewer-info">
-                            <strong>{{ t.name }}</strong>
-                            <span>{{ t.location }}</span>
-                        </div>
-                        <div class="product-tag">{{ t.product }}</div>
+        <!-- Infinite marquee -->
+        <div class="marquee-wrap" :class="{ 'is-visible': isVisible }">
+            <div
+                class="marquee-track"
+                :style="{ animationPlayState: paused ? 'paused' : 'running' }"
+                @mouseenter="paused = true"
+                @mouseleave="paused = false"
+            >
+                <!-- Duplicate for seamless loop -->
+                <div class="marquee-set" v-for="n in 2" :key="n" :aria-hidden="n === 2 ? 'true' : undefined">
+                    <div v-for="(q, i) in quotes" :key="i" class="chip">
+                        <span class="chip-stars">★★★★★</span>
+                        <span class="chip-text">"{{ q.text }}"</span>
+                        <span class="chip-sep">·</span>
+                        <span class="chip-from">{{ q.from }}</span>
                     </div>
-                </article>
+                </div>
             </div>
         </div>
     </section>
 </template>
 
 <script setup>
-import { ref, onMounted, onBeforeUnmount } from 'vue';
+import { ref, reactive, onMounted, onBeforeUnmount } from 'vue';
 
 const sectionRef = ref(null);
-const isVisible = ref(false);
-let observer;
+const isVisible  = ref(false);
+const paused     = ref(false);
 
+const stats = reactive([
+    { target: 1200, displayed: 0, suffix: '+', label: 'Happy Shoppers', accent: '#3b82f6' },
+    { target: 98,   displayed: 0, suffix: '%', label: '5-Star Reviews',  accent: '#10b981' },
+    { target: 9,    displayed: 0, suffix: '',  label: 'Curated Styles',  accent: '#a78bfa' },
+    { target: 3,    displayed: 0, suffix: '',  label: 'Collections',     accent: '#f5a623' },
+]);
+
+const quotes = [
+    { text: 'Absolutely love my sneakers',    from: 'Sophea M.' },
+    { text: 'Fast delivery, perfect fit',     from: 'Dara C.' },
+    { text: 'ABA checkout was instant',       from: 'Leakena R.' },
+    { text: 'Best shoes I\'ve ever owned',    from: 'Virak P.' },
+    { text: 'Super lightweight and comfy',    from: 'Chanthy L.' },
+    { text: 'Arrived faster than expected',   from: 'Borey K.' },
+    { text: 'Amazing quality for the price',  from: 'Maly S.' },
+    { text: 'My go-to for everyday wear',     from: 'Sokha T.' },
+];
+
+function countUp() {
+    const DURATION = 1600;
+    const STEPS    = 60;
+    stats.forEach(s => {
+        let step = 0;
+        const inc = s.target / STEPS;
+        const t = setInterval(() => {
+            step++;
+            s.displayed = step < STEPS ? Math.round(inc * step) : s.target;
+            if (step >= STEPS) clearInterval(t);
+        }, DURATION / STEPS);
+    });
+}
+
+let observer;
 onMounted(() => {
     observer = new IntersectionObserver(
         ([entry]) => {
             if (entry.isIntersecting) {
                 isVisible.value = true;
+                countUp();
                 observer.disconnect();
             }
         },
-        { threshold: 0.1 }
+        { threshold: 0.15 }
     );
     if (sectionRef.value) observer.observe(sectionRef.value);
 });
-
 onBeforeUnmount(() => observer?.disconnect());
-
-const testimonials = [
-    {
-        name: 'Sophea Mok',
-        location: 'Phnom Penh, KH',
-        rating: 5,
-        review: 'The Basic T-Shirt is honestly the softest thing I own. Great quality for the price and arrived super fast. Will definitely be ordering more colors.',
-        product: 'Basic T-Shirt',
-        color: '#4a7fa5'
-    },
-    {
-        name: 'Dara Chea',
-        location: 'Siem Reap, KH',
-        rating: 5,
-        review: 'Bought the Trail Backpack for a trip and it held up perfectly. Tons of space, looks clean, and the build quality exceeded my expectations at this price point.',
-        product: 'Trail Backpack',
-        color: '#5e8a6a'
-    },
-    {
-        name: 'Leakena Ros',
-        location: 'Battambang, KH',
-        rating: 5,
-        review: 'My Canvas Tote Bag gets compliments every single time I use it. The checkout was smooth and the ABA PayWay payment worked instantly. Love the experience.',
-        product: 'Canvas Tote Bag',
-        color: '#8a5e7a'
-    },
-    {
-        name: 'Virak Phorn',
-        location: 'Kampot, KH',
-        rating: 5,
-        review: 'Runner Sneakers are incredibly lightweight. Wore them for a full day walking around and zero discomfort. minishopkh has become my go-to for everyday essentials.',
-        product: 'Runner Sneakers',
-        color: '#7a6a4a'
-    },
-    {
-        name: 'Chanthy Lim',
-        location: 'Phnom Penh, KH',
-        rating: 5,
-        review: 'The Gym Water Bottle keeps my drinks cold for hours. Looks premium, feels solid, and no leaks at all. Really happy with this purchase!',
-        product: 'Gym Water Bottle',
-        color: '#4a6a8a'
-    },
-    {
-        name: 'Borey Kim',
-        location: 'Kandal, KH',
-        rating: 5,
-        review: 'Free shipping arrived faster than expected. The Packing Cubes Set made packing my bag so much easier. Great product, great service — what more can you ask for?',
-        product: 'Packing Cubes Set',
-        color: '#6a7a4a'
-    }
-];
 </script>
 
 <style scoped>
 /* ─── Section ─────────────────────────────────── */
-.testimonials {
-    padding: 88px 0 100px;
+.community {
+    padding: 88px 0 0;
     background: #0a0f1a;
+    overflow: hidden;
 }
 
 .container {
@@ -126,16 +115,15 @@ const testimonials = [
     padding: 0 24px;
 }
 
-/* ─── Head ────────────────────────────────────── */
-.section-head {
+/* ─── Header ──────────────────────────────────── */
+.head {
     text-align: center;
-    margin-bottom: 56px;
+    margin-bottom: 64px;
     opacity: 0;
     transform: translateY(24px);
     transition: opacity 0.7s ease, transform 0.7s ease;
 }
-
-.section-head.is-visible {
+.head.is-visible {
     opacity: 1;
     transform: translateY(0);
 }
@@ -146,7 +134,7 @@ const testimonials = [
     font-weight: 700;
     letter-spacing: 0.22em;
     text-transform: uppercase;
-    color: rgba(255,255,255,0.28);
+    color: rgba(255, 255, 255, 0.28);
     margin-bottom: 14px;
 }
 
@@ -158,150 +146,158 @@ h2 {
     color: #ffffff;
 }
 
-.section-desc {
-    color: rgba(255,255,255,0.4);
+.head-desc {
+    color: rgba(255, 255, 255, 0.4);
     font-size: 16px;
     margin: 0;
     line-height: 1.5;
 }
 
-/* ─── Grid ────────────────────────────────────── */
-.testimonials-grid {
+/* ─── Stats grid ──────────────────────────────── */
+.stats-grid {
     display: grid;
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-    gap: 16px;
-}
-
-.testimonial-card {
-    background: #111827;
-    border: 1px solid rgba(255,255,255,0.06);
-    padding: 28px;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 1px;
+    background: rgba(255, 255, 255, 0.06);
+    border: 1px solid rgba(255, 255, 255, 0.06);
+    margin-bottom: 72px;
     opacity: 0;
-    transform: translateY(24px);
-    transition:
-        opacity 0.6s ease var(--delay, 0s),
-        transform 0.6s ease var(--delay, 0s),
-        box-shadow 0.35s ease,
-        border-color 0.35s ease;
+    transform: translateY(20px);
+    transition: opacity 0.7s ease 0.18s, transform 0.7s ease 0.18s;
 }
-
-.testimonials-grid.is-visible .testimonial-card {
+.stats-grid.is-visible {
     opacity: 1;
     transform: translateY(0);
 }
 
-.testimonial-card:hover {
-    box-shadow: 0 20px 48px rgba(0,0,0,0.5);
-    border-color: rgba(255,255,255,0.12);
-}
-
-/* ─── Card top ────────────────────────────────── */
-.card-top {
+.stat-cell {
+    background: #0e1420;
+    padding: 44px 32px 36px;
     display: flex;
-    align-items: center;
-    justify-content: space-between;
-    margin-bottom: 16px;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 10px;
+    transition: background 0.25s ease;
+}
+.stat-cell:hover {
+    background: #111827;
 }
 
-.stars {
-    display: flex;
-    gap: 2px;
+.stat-num {
+    font-size: clamp(42px, 4.5vw, 60px);
+    font-weight: 800;
+    letter-spacing: -0.04em;
+    color: #ffffff;
+    line-height: 1;
 }
 
-.star-filled {
-    color: #f5a623;
-    font-size: 15px;
+.stat-bar {
+    display: block;
+    width: 32px;
+    height: 3px;
+    border-radius: 2px;
+    background: var(--accent);
 }
 
-.star-empty {
-    color: rgba(255,255,255,0.15);
-    font-size: 15px;
-}
-
-.verified {
-    font-size: 11px;
+.stat-label {
+    font-size: 12px;
     font-weight: 700;
-    color: #10b981;
-    letter-spacing: 0.04em;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: rgba(255, 255, 255, 0.38);
 }
 
-/* ─── Review text ─────────────────────────────── */
-.review-text {
-    font-size: 14.5px;
-    line-height: 1.7;
-    color: rgba(255,255,255,0.65);
-    margin: 0 0 24px;
+/* ─── Marquee ─────────────────────────────────── */
+.marquee-wrap {
+    padding: 44px 0 88px;
+    border-top: 1px solid rgba(255, 255, 255, 0.06);
+    overflow: hidden;
+    opacity: 0;
+    transition: opacity 0.8s ease 0.36s;
+}
+.marquee-wrap.is-visible {
+    opacity: 1;
+}
+
+.marquee-track {
+    display: flex;
+    width: max-content;
+    animation: slide 34s linear infinite;
+}
+@keyframes slide {
+    from { transform: translateX(0); }
+    to   { transform: translateX(-50%); }
+}
+
+.marquee-set {
+    display: flex;
+    gap: 12px;
+    padding-right: 12px;
+}
+
+.chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    background: #111827;
+    border: 1px solid rgba(255, 255, 255, 0.07);
+    border-radius: 100px;
+    padding: 11px 22px;
+    white-space: nowrap;
+    cursor: default;
+    transition: background 0.25s ease, border-color 0.25s ease;
+}
+.chip:hover {
+    background: #1a2234;
+    border-color: rgba(255, 255, 255, 0.14);
+}
+
+.chip-stars {
+    font-size: 10px;
+    color: #f5a623;
+    letter-spacing: 1.5px;
+}
+.chip-text {
+    font-size: 13px;
+    color: rgba(255, 255, 255, 0.7);
     font-style: italic;
 }
-
-/* ─── Reviewer ────────────────────────────────── */
-.reviewer {
-    display: flex;
-    align-items: center;
-    gap: 12px;
+.chip-sep {
+    font-size: 16px;
+    color: rgba(255, 255, 255, 0.18);
 }
-
-.avatar {
-    width: 38px;
-    height: 38px;
-    border-radius: 50%;
-    background: var(--avatar-bg);
-    color: #fff;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 15px;
-    font-weight: 800;
-    flex-shrink: 0;
-}
-
-.reviewer-info {
-    flex: 1;
-}
-
-.reviewer-info strong {
-    display: block;
-    font-size: 13px;
-    color: #ffffff;
-    font-weight: 700;
-}
-
-.reviewer-info span {
-    display: block;
+.chip-from {
     font-size: 12px;
-    color: rgba(255,255,255,0.3);
-    margin-top: 2px;
-}
-
-.product-tag {
-    font-size: 11px;
     font-weight: 700;
-    letter-spacing: 0.04em;
-    color: rgba(255,255,255,0.4);
-    background: rgba(255,255,255,0.06);
-    padding: 4px 10px;
-    border-radius: 20px;
-    white-space: nowrap;
+    color: rgba(255, 255, 255, 0.32);
 }
 
 /* ─── Responsive ──────────────────────────────── */
-@media (max-width: 980px) {
-    .testimonials-grid {
-        grid-template-columns: repeat(2, minmax(0, 1fr));
+@media (max-width: 860px) {
+    .stats-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+    .stats-grid {
+        margin-bottom: 52px;
     }
 }
 
-@media (max-width: 640px) {
-    .testimonials {
-        padding: 60px 0 72px;
+@media (max-width: 540px) {
+    .community {
+        padding-top: 60px;
     }
-
-    .testimonials-grid {
-        grid-template-columns: 1fr;
+    .head {
+        margin-bottom: 44px;
     }
-
-    .product-tag {
-        display: none;
+    .stats-grid {
+        grid-template-columns: 1fr 1fr;
+        margin-bottom: 40px;
+    }
+    .stat-cell {
+        padding: 28px 20px 24px;
+    }
+    .marquee-wrap {
+        padding: 36px 0 60px;
     }
 }
 </style>

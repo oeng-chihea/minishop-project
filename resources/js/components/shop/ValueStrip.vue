@@ -100,7 +100,7 @@ onBeforeUnmount(() => { if (observer) observer.disconnect(); });
 }
 
 .strip-inner {
-    max-width: 1240px;
+    max-width: 1480px;
     margin: 0 auto;
     padding: 0 24px;
 }
@@ -163,8 +163,8 @@ onBeforeUnmount(() => { if (observer) observer.disconnect(); });
 
     /* ── sleeping pose ── */
     transform-origin: 50% 100%;          /* pivot at bottom centre */
-    transform: rotate(-14deg) skewX(8deg) scale(0.86);
-    box-shadow: -14px 24px 48px rgba(0,0,0,0.65);
+    transform: rotate(-18deg) skewX(10deg) scale(0.82);
+    box-shadow: -18px 30px 60px rgba(0,0,0,0.72);
     transition:
         opacity   0.5s ease var(--delay),
         transform 0.55s cubic-bezier(0.22, 1, 0.36, 1),
