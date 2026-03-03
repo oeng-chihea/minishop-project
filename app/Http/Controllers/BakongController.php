@@ -136,10 +136,11 @@ class BakongController extends Controller
     private function renderQrImage(string $data): string
     {
         $options = new QROptions([
-            'outputType' => QRCode::OUTPUT_MARKUP_SVG,
-            'scale'      => 6,
-            'margin'     => 2,
-            'eccLevel'   => QRCode::ECC_M,
+            'outputType'   => QRCode::OUTPUT_MARKUP_SVG,
+            'outputBase64' => false,
+            'scale'        => 6,
+            'margin'       => 2,
+            'eccLevel'     => QRCode::ECC_M,
         ]);
 
         return (new QRCode($options))->render($data);
