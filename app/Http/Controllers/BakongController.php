@@ -142,7 +142,6 @@ class BakongController extends Controller
             'eccLevel'   => QRCode::ECC_M,
         ]);
 
-        $svg = (new QRCode($options))->render($data);
-        return 'data:image/svg+xml;base64,' . base64_encode($svg);
+        return (new QRCode($options))->render($data);
     }
 }

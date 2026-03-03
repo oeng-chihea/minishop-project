@@ -48,7 +48,7 @@
 
                     <!-- QR Image -->
                     <div class="bk-qr-wrap" :class="{ 'paid': paid }">
-                        <img :src="qrImage" alt="Bakong KHQR" class="bk-qr-img" />
+                        <div v-html="qrImage" class="bk-qr-img"></div>
                         <!-- Paid overlay -->
                         <div v-if="paid" class="bk-paid-overlay">
                             <svg width="52" height="52" viewBox="0 0 24 24" fill="none" stroke="#22c55e" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -347,6 +347,11 @@ function onOverlayClick() {
 .bk-qr-img {
     width: 240px;
     height: 240px;
+    display: block;
+}
+.bk-qr-img svg {
+    width: 100%;
+    height: 100%;
     display: block;
 }
 
