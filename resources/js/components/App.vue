@@ -25,8 +25,21 @@
             @add-one="addOne"
             @remove-item="removeItem"
             @clear="clearCart"
-            @checkout="checkoutWithAba"
+            @checkout="checkoutWithBakong"
             @close="isCartOpen = false"
+        />
+
+        <BakongCheckoutModal
+            :show="bakongModal.show"
+            :loading="bakongModal.loading"
+            :error="bakongModal.error"
+            :qr-image="bakongModal.qrImage"
+            :md5="bakongModal.md5"
+            :amount="bakongModal.amount"
+            :lifetime="300"
+            @close="closeBakongModal"
+            @paid="onBakongPaid"
+            @retry="checkoutWithBakong"
         />
 
         <button type="button" class="cart-toggle" :class="{ 'is-open': isCartOpen }" aria-label="Toggle cart" @click="isCartOpen = !isCartOpen">
@@ -49,7 +62,7 @@
 </template>
 
 <script setup>
-import { computed, ref } from 'vue';
+import { computed, reactive, ref } from 'vue';
 import SiteHeader from './layout/SiteHeader.vue';
 import HeroSection from './shop/HeroSection.vue';
 import TrendingBanner from './shop/TrendingBanner.vue';
@@ -57,6 +70,7 @@ import CollectionsSection from './shop/CollectionsSection.vue';
 import ValueStrip from './shop/ValueStrip.vue';
 import ProductGrid from './shop/ProductGrid.vue';
 import CartPanel from './shop/CartPanel.vue';
+import BakongCheckoutModal from './shop/BakongCheckoutModal.vue';
 import TestimonialsSection from './shop/TestimonialsSection.vue';
 import FAQSection from './shop/FAQSection.vue';
 import NewsletterSection from './shop/NewsletterSection.vue';
@@ -199,56 +213,31 @@ const clearCart = () => {
     cart.value = [];
 };
 
-const isMobileDevice = () => /Android|iPhone|iPad|iPod|Mobile/i.test(window.navigator.userAgent);
+// ── Bakong KHQR checkout ──────────────────────────────────
+const bakongModal = reactive({
+    show:    false,
+    loading: false,
+    error:   '',
+    qrImage: '',
+    md5:     '',
+    amount:  0,
+});
 
-const openQrFallback = (checkoutData) => {
-    if (!checkoutData?.qrImage) {
-        return false;
-    }
-
-    const popup = window.open('', '_blank');
-
-    if (!popup) {
-        return false;
-    }
-
-    popup.document.write(`
-        <!doctype html>
-        <html lang="en">
-        <head>
-            <meta charset="utf-8" />
-            <meta name="viewport" content="width=device-width,initial-scale=1" />
-            <title>ABA PayWay Checkout</title>
-            <style>
-                body{font-family:Segoe UI,Roboto,Arial,sans-serif;background:#f5f8fc;color:#10233f;margin:0;padding:24px;text-align:center}
-                .card{max-width:440px;margin:0 auto;background:#fff;border:1px solid #d6deea;padding:20px;border-radius:8px}
-                img{max-width:100%;height:auto;border:1px solid #d6deea}
-                a{display:inline-block;margin-top:14px;padding:10px 14px;background:#2f4f7f;color:#fff;text-decoration:none;border-radius:4px;font-weight:600}
-                p{margin:8px 0;color:#4a596d}
-            </style>
-        </head>
-        <body>
-            <div class="card">
-                <h2>Complete payment with ABA</h2>
-                <p>Scan this QR in ABA Mobile app to pay.</p>
-                <img src="${checkoutData.qrImage}" alt="ABA payment QR" />
-                ${checkoutData.abapay_deeplink ? `<a href="${checkoutData.abapay_deeplink}">Open ABA App</a>` : ''}
-            </div>
-        </body>
-        </html>
-    `);
-    popup.document.close();
-
-    return true;
-};
-
-const checkoutWithAba = async () => {
+const checkoutWithBakong = async () => {
     if (!cart.value.length || checkoutLoading.value) {
         return;
     }
 
-    checkoutError.value  = '';
+    checkoutError.value   = '';
     checkoutLoading.value = true;
+
+    // Open modal in loading state
+    bakongModal.show    = true;
+    bakongModal.loading = true;
+    bakongModal.error   = '';
+    bakongModal.qrImage = '';
+    bakongModal.md5     = '';
+    bakongModal.amount  = 0;
 
     try {
         const items = cart.value.map((item) => ({
@@ -257,52 +246,37 @@ const checkoutWithAba = async () => {
             price: item.price,
         }));
 
-        const { data } = await window.axios.post('/api/checkout', { items });
+        const { data } = await window.axios.post('/api/bakong/checkout', { items });
 
-        const deepLink       = data?.abapay_deeplink || '';
-        const webCheckoutUrl = data?.checkout_url   || '';
-        const hasQr          = !!(data?.qrImage);
-        const isSandbox      = (data?.environment || '').toLowerCase() === 'sandbox';
-        const onMobile       = isMobileDevice();
+        bakongModal.loading = false;
+        bakongModal.qrImage = data.qr_image  || '';
+        bakongModal.md5     = data.md5        || '';
+        bakongModal.amount  = data.amount     || 0;
 
-        checkoutLoading.value = false;
-
-        if (webCheckoutUrl && /^https?:\/\//i.test(webCheckoutUrl)) {
-            window.location.href = webCheckoutUrl;
-            return;
-        }
-
-        if (onMobile && deepLink) {
-            window.location.href = deepLink;
-
-            if (hasQr) {
-                setTimeout(() => {
-                    if (document.visibilityState === 'visible') {
-                        openQrFallback(data);
-                        checkoutError.value = isSandbox
-                            ? 'Sandbox payment opened. If ABA app shows "transaction not found", test with the sandbox-compatible ABA environment.'
-                            : 'If ABA app did not open, use the QR page to complete payment.';
-                    }
-                }, 1400);
-            }
-
-            return;
-        }
-
-        if (hasQr && openQrFallback(data)) {
-            checkoutError.value = isSandbox
-                ? 'Scan the QR code in your ABA Mobile app to pay. (Sandbox mode)'
-                : 'Scan the QR code in your ABA Mobile app to pay.';
-            return;
-        }
-
-        checkoutError.value = 'Could not open ABA checkout. Please try again.';
+        // Close the cart panel once QR is ready
+        isCartOpen.value = false;
 
     } catch (err) {
+        bakongModal.loading = false;
+        bakongModal.error   = err?.response?.data?.message
+            || 'Could not generate Bakong QR. Please try again.';
+    } finally {
         checkoutLoading.value = false;
-        checkoutError.value   = err?.response?.data?.message
-            || 'Could not initiate checkout. Please try again.';
     }
+};
+
+const closeBakongModal = () => {
+    bakongModal.show    = false;
+    bakongModal.loading = false;
+    bakongModal.error   = '';
+    bakongModal.qrImage = '';
+    bakongModal.md5     = '';
+};
+
+const onBakongPaid = () => {
+    bakongModal.show = false;
+    clearCart();
+    window.location.href = '/payment/result?status=0';
 };
 
 const totalItems = computed(() =>
