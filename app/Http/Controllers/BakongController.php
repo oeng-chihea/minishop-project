@@ -125,8 +125,8 @@ class BakongController extends Controller
             ]);
 
         } catch (\Throwable $e) {
-            Log::error('Bakong check-status error', ['message' => $e->getMessage()]);
-            return response()->json(['message' => 'Could not check payment status. Please try again.'], 500);
+            Log::warning('Bakong check-status error', ['message' => $e->getMessage()]);
+            return response()->json(['paid' => false]);
         }
     }
 

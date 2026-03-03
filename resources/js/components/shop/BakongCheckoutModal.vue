@@ -349,7 +349,7 @@ function onOverlayClick() {
     height: 240px;
     display: block;
 }
-.bk-qr-img svg {
+.bk-qr-img :deep(svg) {
     width: 100%;
     height: 100%;
     display: block;
