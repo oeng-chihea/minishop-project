@@ -38,10 +38,24 @@
             <!-- Cart items -->
             <TransitionGroup v-else name="cart-item" tag="ul" class="cart-list">
                 <li v-for="item in items" :key="item.id" class="cart-item">
+
+                    <!-- Product thumbnail -->
+                    <div class="item-thumb-wrap">
+                        <img
+                            class="item-thumb"
+                            :src="item.image"
+                            :alt="item.name"
+                        />
+                        <span v-if="item.qty > 1" class="item-qty-badge">{{ item.qty }}</span>
+                    </div>
+
+                    <!-- Name + price -->
                     <div class="item-meta">
                         <h4>{{ item.name }}</h4>
                         <p class="unit-price">${{ item.price.toFixed(2) }} each</p>
                     </div>
+
+                    <!-- Controls -->
                     <div class="item-actions">
                         <strong class="item-total">${{ (item.qty * item.price).toFixed(2) }}</strong>
                         <div class="qty-control" aria-label="Quantity controls">
@@ -328,16 +342,56 @@ onBeforeUnmount(() => {
 /* ─── Cart item ────────────────────────────────── */
 .cart-item {
     border-bottom: 1px solid rgba(255, 255, 255, 0.06);
-    padding: 16px 0;
+    padding: 14px 0;
     display: flex;
-    justify-content: space-between;
     align-items: center;
-    gap: 12px;
+    gap: 11px;
 }
 
 .cart-item:first-child {
     border-top: 1px solid rgba(255, 255, 255, 0.06);
     margin-top: 8px;
+}
+
+/* ─── Item thumbnail ───────────────────────────── */
+.item-thumb-wrap {
+    position: relative;
+    flex-shrink: 0;
+}
+
+.item-thumb {
+    width: 54px;
+    height: 54px;
+    object-fit: cover;
+    border-radius: 4px;
+    border: 1px solid rgba(255, 255, 255, 0.09);
+    display: block;
+    background: #1a2234;
+}
+
+/* qty badge overlaid on the thumbnail */
+.item-qty-badge {
+    position: absolute;
+    top: -6px;
+    right: -6px;
+    min-width: 18px;
+    height: 18px;
+    padding: 0 4px;
+    border-radius: 9px;
+    background: #ffffff;
+    color: #080d16;
+    font-size: 10px;
+    font-weight: 800;
+    line-height: 18px;
+    text-align: center;
+    letter-spacing: 0;
+    pointer-events: none;
+}
+
+/* ─── Item meta ────────────────────────────────── */
+.item-meta {
+    flex: 1;
+    min-width: 0;
 }
 
 h4 {
@@ -346,11 +400,14 @@ h4 {
     font-weight: 600;
     color: #ffffff;
     letter-spacing: -0.01em;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
 .unit-price {
-    margin: 5px 0 0;
-    font-size: 12px;
+    margin: 4px 0 0;
+    font-size: 11px;
     color: rgba(255, 255, 255, 0.3);
 }
 
@@ -548,8 +605,43 @@ h4 {
 
 /* ─── Responsive ───────────────────────────────── */
 @media (max-width: 640px) {
-    .total-amount {
-        font-size: 24px;
+    .total-amount { font-size: 24px; }
+}
+
+/* Narrow panel (375px phone → panel is ~345px → list area ~301px) */
+@media (max-width: 430px) {
+    .panel-head   { padding: 16px 14px; }
+    .cart-list    { padding: 0 14px; }
+    .panel-footer { padding: 14px 14px 22px; }
+
+    .cart-item    { gap: 8px; }
+
+    .item-thumb   { width: 46px; height: 46px; }
+
+    .item-total   { min-width: 38px; font-size: 12px; }
+
+    .qty-btn  { width: 22px; height: 22px; font-size: 14px; }
+    .qty-val  { min-width: 16px; font-size: 11px; }
+
+    .trash-btn { width: 26px; height: 26px; }
+
+    .item-actions { gap: 6px; }
+}
+
+/* Ultra-narrow — stack controls below name row */
+@media (max-width: 360px) {
+    .cart-item { flex-wrap: wrap; }
+
+    .item-meta { order: 1; min-width: 0; flex: 1; }
+
+    .item-actions {
+        order: 2;
+        width: 100%;
+        justify-content: flex-end;
+        padding-top: 6px;
+        border-top: 1px solid rgba(255,255,255,0.05);
     }
+
+    .item-thumb-wrap { align-self: flex-start; }
 }
 </style>

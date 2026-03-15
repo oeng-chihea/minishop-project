@@ -81,7 +81,7 @@ const products = ref([
     {
         id: 1,
         name: 'Classic Low-Top Sneakers',
-        price: 79.00,
+        price: 8.00,
         category: 'everyday',
         tagline: 'Sleek everyday sneakers for casual wear',
         image: '/images/products/Classic Low-Top Sneakers.webp'
@@ -89,7 +89,7 @@ const products = ref([
     {
         id: 2,
         name: 'Urban Slip-On Shoes',
-        price: 64.00,
+        price: 6.00,
         category: 'everyday',
         tagline: 'Easy on, easy off for your daily routine',
         image: '/images/products/Urban Slip-On Shoes.jpg'
@@ -97,7 +97,7 @@ const products = ref([
     {
         id: 3,
         name: 'Canvas Street Kicks',
-        price: 55.00,
+        price: 4.00,
         category: 'everyday',
         tagline: 'Lightweight canvas for all-day comfort',
         image: '/images/products/Canvas Street Kicks.jpg'
@@ -106,7 +106,7 @@ const products = ref([
     {
         id: 4,
         name: 'Comfort Walk Loafers',
-        price: 89.00,
+        price: 9.00,
         category: 'travel',
         tagline: 'Cushioned soles built for long walks',
         image: '/images/products/Comfort Walk Loafers.jpg'
@@ -114,7 +114,7 @@ const products = ref([
     {
         id: 5,
         name: 'Foldable Travel Flats',
-        price: 48.00,
+        price: 2.00,
         category: 'travel',
         tagline: 'Pack-friendly flats for any destination',
         image: '/images/products/Foldable Travel Flats.jpg'
@@ -122,7 +122,7 @@ const products = ref([
     {
         id: 6,
         name: 'Lightweight Mesh Sneakers',
-        price: 72.00,
+        price: 7.00,
         category: 'travel',
         tagline: 'Breathable mesh perfect for exploring cities',
         image: '/images/products/Lightweight Mesh Sneakers.jpg'
@@ -131,7 +131,7 @@ const products = ref([
     {
         id: 7,
         name: 'Pro Runner Sneakers',
-        price: 119.00,
+        price: 10.00,
         category: 'activity',
         tagline: 'High-performance shoes for serious runners',
         image: '/images/products/Pro Runner Sneakers.jpg'
@@ -139,7 +139,7 @@ const products = ref([
     {
         id: 8,
         name: 'Training Court Shoes',
-        price: 95.00,
+        price: 5.00,
         category: 'activity',
         tagline: 'Stable grip for gym and court workouts',
         image: '/images/products/Training Court Shoes.jpg'
@@ -147,7 +147,7 @@ const products = ref([
     {
         id: 9,
         name: 'Trail Running Shoes',
-        price: 109.00,
+        price: 1.00,
         category: 'activity',
         tagline: 'Rugged outsole for off-road adventures',
         image: '/images/products/Trail Running Shoes.jpg'
@@ -292,7 +292,8 @@ const totalPrice = computed(() =>
 .cart-toggle {
     position: fixed;
     right: 24px;
-    bottom: 24px;
+    /* respect iOS home indicator safe area */
+    bottom: max(24px, env(safe-area-inset-bottom, 24px));
     z-index: 60;
     display: flex;
     align-items: center;
@@ -306,6 +307,10 @@ const totalPrice = computed(() =>
     cursor: pointer;
     box-shadow: 0 8px 24px rgba(0, 0, 0, 0.45);
     transition: background 0.2s ease, transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+@media (max-width: 480px) {
+    .cart-toggle { right: 16px; }
 }
 
 .cart-toggle:hover {

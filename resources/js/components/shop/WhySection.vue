@@ -67,7 +67,7 @@ const cards = [
     },
     {
         title: 'Fast & Secure Checkout',
-        desc: 'Pay safely with ABA PayWay — Cambodia\'s most trusted payment platform. Your data is encrypted and your order confirmed in seconds.',
+        desc: 'Pay safely with Bakong KHQR — Cambodia\'s leading digital payment solution. Scan, confirm, and your order is done in seconds.',
         accent: '#a78bfa'
     }
 ];
@@ -272,19 +272,20 @@ onBeforeUnmount(() => {
 }
 
 /* ─── Transition ──────────────────────────────── */
+/* Unique WhySection animation: cards slide in from the right */
 .card-cycle-enter-active {
-    transition: opacity 0.45s ease, transform 0.45s cubic-bezier(0.22, 1, 0.36, 1);
+    transition: opacity 0.5s ease, transform 0.5s cubic-bezier(0.22, 1, 0.36, 1);
 }
 .card-cycle-leave-active {
     transition: opacity 0.3s ease, transform 0.3s ease;
 }
 .card-cycle-enter-from {
     opacity: 0;
-    transform: translateY(30px);
+    transform: translateX(60px);
 }
 .card-cycle-leave-to {
     opacity: 0;
-    transform: translateY(-20px);
+    transform: translateX(-40px);
 }
 
 /* ─── Responsive ──────────────────────────────── */
@@ -307,9 +308,19 @@ onBeforeUnmount(() => {
 }
 
 @media (max-width: 540px) {
-    .why-wrap { padding: 64px 0 72px; }
+    .why-wrap        { padding: 64px 0 72px; }
     .counter-current { font-size: 40px; }
-    .cycle-title { font-size: 26px; }
-    .cycle-desc { font-size: 14px; }
+    .cycle-title     { font-size: 26px; }
+    .cycle-desc      { font-size: 14px; }
+}
+
+@media (max-width: 420px) {
+    .why-wrap        { padding: 48px 0 56px; }
+    .why-inner       { padding: 0 16px; gap: 28px; }
+    .counter-current { font-size: 34px; }
+    .cycle-title     { font-size: 22px; }
+    .cycle-desc      { font-size: 13px; line-height: 1.65; }
+    .cycle-body      { padding: 24px 20px 28px 24px; }
+    .why-eyebrow     { font-size: 10px; }
 }
 </style>

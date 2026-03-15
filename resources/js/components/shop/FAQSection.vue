@@ -82,7 +82,7 @@ const faqs = [
     },
     {
         question: 'What payment methods do you accept?',
-        answer: 'We accept payments via ABA PayWay — Cambodia\'s most trusted payment platform. You can pay using ABA Mobile, KHQR, Visa, Mastercard, and more through a secure checkout flow.'
+        answer: 'We accept payments via Bakong KHQR — scan the QR code with your Bakong-enabled bank app to pay instantly and securely with no extra steps.'
     },
     {
         question: 'How do I track my order?',
@@ -104,6 +104,7 @@ const faqs = [
 .faq-section {
     padding: 88px 0 100px;
     background: #080d16;
+    overflow-x: hidden; /* prevent horizontal scroll from slide-in animation */
 }
 
 .container {
@@ -162,16 +163,17 @@ h2 {
 
 .faq-item {
     border-bottom: 1px solid rgba(255,255,255,0.07);
+    /* Unique FAQ animation: items slide in from the left */
     opacity: 0;
-    transform: translateY(12px);
+    transform: translateX(-28px);
     transition:
         opacity 0.5s ease var(--delay, 0s),
-        transform 0.5s ease var(--delay, 0s);
+        transform 0.55s cubic-bezier(0.22, 1, 0.36, 1) var(--delay, 0s);
 }
 
 .faq-inner.is-visible .faq-item {
     opacity: 1;
-    transform: translateY(0);
+    transform: translateX(0);
 }
 
 .faq-item:first-child {
@@ -247,5 +249,14 @@ h2 {
         font-size: 15px;
         padding: 18px 0;
     }
+}
+
+@media (max-width: 420px) {
+    .faq-section { padding: 48px 0 60px; }
+    .container    { padding: 0 16px; }
+    h2            { font-size: 26px; }
+    .faq-head     { margin-bottom: 36px; }
+    .faq-question { font-size: 14px; padding: 16px 0; gap: 10px; }
+    .faq-answer p { font-size: 13px; }
 }
 </style>

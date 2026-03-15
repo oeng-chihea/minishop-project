@@ -62,7 +62,7 @@ const stats = reactive([
 const quotes = [
     { text: 'Absolutely love my sneakers',    from: 'Sophea M.' },
     { text: 'Fast delivery, perfect fit',     from: 'Dara C.' },
-    { text: 'ABA checkout was instant',       from: 'Leakena R.' },
+    { text: 'Bakong KHQR checkout was instant', from: 'Leakena R.' },
     { text: 'Best shoes I\'ve ever owned',    from: 'Virak P.' },
     { text: 'Super lightweight and comfy',    from: 'Chanthy L.' },
     { text: 'Arrived faster than expected',   from: 'Borey K.' },
@@ -116,16 +116,17 @@ onBeforeUnmount(() => observer?.disconnect());
 }
 
 /* ─── Header ──────────────────────────────────── */
+/* Unique Testimonials animation: head scales in (no translate) */
 .head {
     text-align: center;
     margin-bottom: 64px;
     opacity: 0;
-    transform: translateY(24px);
+    transform: scale(0.94);
     transition: opacity 0.7s ease, transform 0.7s ease;
 }
 .head.is-visible {
     opacity: 1;
-    transform: translateY(0);
+    transform: scale(1);
 }
 
 .kicker {
@@ -161,15 +162,9 @@ h2 {
     background: rgba(255, 255, 255, 0.06);
     border: 1px solid rgba(255, 255, 255, 0.06);
     margin-bottom: 72px;
-    opacity: 0;
-    transform: translateY(20px);
-    transition: opacity 0.7s ease 0.18s, transform 0.7s ease 0.18s;
-}
-.stats-grid.is-visible {
-    opacity: 1;
-    transform: translateY(0);
 }
 
+/* Unique Testimonials animation: each cell spring-pops in individually */
 .stat-cell {
     background: #0e1420;
     padding: 44px 32px 36px;
@@ -177,7 +172,16 @@ h2 {
     flex-direction: column;
     align-items: flex-start;
     gap: 10px;
-    transition: background 0.25s ease;
+    opacity: 0;
+    transform: scale(0.6);
+    transition:
+        background 0.25s ease,
+        opacity  0.5s ease calc(var(--i) * 0.13s + 0.1s),
+        transform 0.65s cubic-bezier(0.34, 1.56, 0.64, 1) calc(var(--i) * 0.13s + 0.1s);
+}
+.stats-grid.is-visible .stat-cell {
+    opacity: 1;
+    transform: scale(1);
 }
 .stat-cell:hover {
     background: #111827;
@@ -193,10 +197,14 @@ h2 {
 
 .stat-bar {
     display: block;
-    width: 32px;
+    width: 0;
     height: 3px;
     border-radius: 2px;
     background: var(--accent);
+    transition: width 0.5s ease calc(var(--i) * 0.13s + 0.55s);
+}
+.stats-grid.is-visible .stat-bar {
+    width: 32px;
 }
 
 .stat-label {
@@ -283,21 +291,22 @@ h2 {
 }
 
 @media (max-width: 540px) {
-    .community {
-        padding-top: 60px;
-    }
-    .head {
-        margin-bottom: 44px;
-    }
-    .stats-grid {
-        grid-template-columns: 1fr 1fr;
-        margin-bottom: 40px;
-    }
-    .stat-cell {
-        padding: 28px 20px 24px;
-    }
-    .marquee-wrap {
-        padding: 36px 0 60px;
-    }
+    .community      { padding-top: 60px; }
+    .head           { margin-bottom: 44px; }
+    .stats-grid     { grid-template-columns: 1fr 1fr; margin-bottom: 40px; }
+    .stat-cell      { padding: 28px 20px 24px; }
+    .marquee-wrap   { padding: 36px 0 60px; }
+}
+
+@media (max-width: 420px) {
+    .community      { padding-top: 48px; }
+    .container      { padding: 0 16px; }
+    h2              { font-size: 24px; }
+    .head           { margin-bottom: 32px; }
+    .stat-num       { font-size: 32px; }   /* override clamp min on very small screens */
+    .stat-cell      { padding: 20px 14px 18px; }
+    .stat-label     { font-size: 10px; }
+    .chip           { padding: 9px 16px; }
+    .chip-text      { font-size: 12px; }
 }
 </style>

@@ -44,6 +44,7 @@ onBeforeUnmount(() => observer?.disconnect());
     background: #0a0f1a;
     padding: 88px 0 100px;
     border-top: 1px solid rgba(255,255,255,0.06);
+    overflow-x: hidden; /* prevent horizontal scroll from split-reveal animation */
 }
 
 /* ─── Inner ───────────────────────────────────── */
@@ -55,14 +56,27 @@ onBeforeUnmount(() => observer?.disconnect());
     grid-template-columns: 1.4fr 1fr;
     gap: 48px;
     align-items: center;
-    opacity: 0;
-    transform: translateY(28px);
-    transition: opacity 0.7s ease, transform 0.7s ease;
 }
 
-.newsletter-inner.is-visible {
+/* Unique Newsletter animation: split reveal — text from left, form from right */
+.text-col {
+    opacity: 0;
+    transform: translateX(-44px);
+    transition: opacity 0.7s ease 0.1s, transform 0.75s cubic-bezier(0.22, 1, 0.36, 1) 0.1s;
+}
+.newsletter-inner.is-visible .text-col {
     opacity: 1;
-    transform: translateY(0);
+    transform: translateX(0);
+}
+
+.form-col {
+    opacity: 0;
+    transform: translateX(44px);
+    transition: opacity 0.7s ease 0.22s, transform 0.75s cubic-bezier(0.22, 1, 0.36, 1) 0.22s;
+}
+.newsletter-inner.is-visible .form-col {
+    opacity: 1;
+    transform: translateX(0);
 }
 
 /* ─── Text ────────────────────────────────────── */
@@ -148,12 +162,22 @@ button:hover {
 }
 
 @media (max-width: 540px) {
-    .newsletter-wrap {
-        padding: 64px 0 72px;
-    }
+    .newsletter-wrap { padding: 64px 0 72px; }
 
-    .form-col {
-        grid-template-columns: 1fr;
-    }
+    .newsletter-inner { padding: 0 20px; }
+
+    .form-col { grid-template-columns: 1fr; }
+}
+
+@media (max-width: 420px) {
+    .newsletter-wrap { padding: 48px 0 56px; }
+
+    .newsletter-inner { padding: 0 16px; gap: 24px; }
+
+    h3  { font-size: 24px; }
+
+    .desc { font-size: 14px; }
+
+    input, button { font-size: 13px; padding: 12px 14px; }
 }
 </style>

@@ -1,5 +1,5 @@
 <template>
-    <section class="card fade-in-up" id="shop">
+    <section class="card fade-in-up" id="shop" ref="sectionRef" :class="{ 'grid-in': gridVisible }">
         <div class="favorites-head">
             <h2>Our Favorites</h2>
             <nav class="tabs" aria-label="Product categories">
@@ -29,9 +29,10 @@
         <Transition name="fade-tab" mode="out-in">
             <div class="product-grid" :key="activeTab">
                 <article
-                    v-for="product in filteredProducts"
+                    v-for="(product, index) in filteredProducts"
                     :key="product.id"
                     class="product-card scale-on-hover"
+                    :style="{ '--delay': (index * 0.13) + 's' }"
                 >
                     <div class="thumb-wrap">
                         <img :src="product.image" :alt="product.name" class="thumb" />
@@ -43,7 +44,14 @@
 
                         <div class="actions">
                             <strong>${{ product.price.toFixed(2) }}</strong>
-                            <button type="button" @click="$emit('add', product)">Add to cart</button>
+                            <button
+                                type="button"
+                                :class="{ 'btn-added': addedId === product.id }"
+                                @click="flyToCart($event, product)"
+                            >
+                                <span v-if="addedId === product.id">✓ Added</span>
+                                <span v-else>Add to cart</span>
+                            </button>
                         </div>
                     </div>
                 </article>
@@ -53,26 +61,143 @@
 </template>
 
 <script setup>
-import { ref, computed } from 'vue';
+import { ref, computed, onMounted, onBeforeUnmount } from 'vue';
 
 const props = defineProps({
-    products: {
-        type: Array,
-        required: true
-    }
+    products: { type: Array, required: true }
 });
 
-defineEmits(['add']);
+const emit = defineEmits(['add']);
 
-const activeTab = ref('everyday');
+const activeTab  = ref('everyday');
+const sectionRef = ref(null);
+const gridVisible = ref(false);
+const addedId    = ref(null);   // tracks which product just got added
+let gridObserver = null;
+let addedTimer   = null;
 
-const setTab = (tab) => {
-    activeTab.value = tab;
-};
+const setTab = (tab) => { activeTab.value = tab; };
 
 const filteredProducts = computed(() =>
     props.products.filter(p => p.category === activeTab.value)
 );
+
+// ── Flying image animation ──────────────────────────────────────────
+function flyToCart(event, product) {
+    // Add to cart immediately
+    emit('add', product);
+
+    // Flash the button state
+    addedId.value = product.id;
+    clearTimeout(addedTimer);
+    addedTimer = setTimeout(() => { addedId.value = null; }, 1100);
+
+    // Locate the thumbnail and the cart toggle button
+    const article = event.currentTarget.closest('article');
+    const thumb   = article?.querySelector('.thumb');
+    const cartBtn = document.querySelector('.cart-toggle');
+    if (!thumb || !cartBtn) return;
+
+    const tRect = thumb.getBoundingClientRect();
+    const cRect = cartBtn.getBoundingClientRect();
+
+    // Flying clone — fixed size, centered on thumbnail
+    const SIZE = 80;
+    const startX = tRect.left + tRect.width  / 2;
+    const startY = tRect.top  + tRect.height / 2;
+    const endX   = cRect.left + cRect.width  / 2;
+    const endY   = cRect.top  + cRect.height / 2;
+
+    const clone = document.createElement('img');
+    clone.src = product.image;
+    Object.assign(clone.style, {
+        position:     'fixed',
+        left:         `${startX - SIZE / 2}px`,
+        top:          `${startY - SIZE / 2}px`,
+        width:        `${SIZE}px`,
+        height:       `${SIZE}px`,
+        objectFit:    'cover',
+        borderRadius: '6px',
+        zIndex:       '99999',
+        pointerEvents:'none',
+        boxShadow:    '0 8px 28px rgba(0,0,0,0.55)',
+        willChange:   'transform, opacity, left, top',
+        transition:   'border-radius 0.5s ease, box-shadow 0.4s ease',
+    });
+    document.body.appendChild(clone);
+
+    // Arc control point — curve upward between start and end
+    const cpX = (startX + endX) / 2;
+    const cpY = Math.min(startY, endY) - Math.abs(endX - startX) * 0.4 - 60;
+
+    const DURATION = 720;
+    const startTime = performance.now();
+    let rafId;
+
+    // Ease-in-out cubic
+    function ease(t) {
+        return t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
+    }
+
+    function step(now) {
+        const t  = Math.min((now - startTime) / DURATION, 1);
+        const et = ease(t);
+
+        // Quadratic Bézier
+        const bx = (1 - et) * (1 - et) * startX + 2 * (1 - et) * et * cpX + et * et * endX;
+        const by = (1 - et) * (1 - et) * startY + 2 * (1 - et) * et * cpY + et * et * endY;
+
+        // Shrink from SIZE → 36px and fade out in last 30%
+        const scale   = 1 - et * 0.55;
+        const opacity = t > 0.7 ? Math.max(0, 1 - (t - 0.7) / 0.3) : 1;
+
+        Object.assign(clone.style, {
+            left:    `${bx - SIZE / 2}px`,
+            top:     `${by - SIZE / 2}px`,
+            transform:`scale(${scale})`,
+            opacity: opacity,
+        });
+
+        if (t < 1) {
+            rafId = requestAnimationFrame(step);
+        } else {
+            if (document.body.contains(clone)) document.body.removeChild(clone);
+        }
+    }
+
+    // Morph to circle as it flies
+    requestAnimationFrame(() => {
+        clone.style.borderRadius = '50%';
+        clone.style.boxShadow    = '0 4px 14px rgba(0,0,0,0.3)';
+    });
+
+    rafId = requestAnimationFrame(step);
+
+    // Safety cleanup
+    setTimeout(() => {
+        cancelAnimationFrame(rafId);
+        if (document.body.contains(clone)) document.body.removeChild(clone);
+    }, DURATION + 100);
+}
+// ───────────────────────────────────────────────────────────────────
+
+onMounted(() => {
+    gridObserver = new IntersectionObserver(
+        ([entry]) => {
+            if (entry.isIntersecting) {
+                gridVisible.value = true;
+                gridObserver.disconnect();
+            }
+        },
+        { threshold: 0.08 }
+    );
+    if (sectionRef.value) gridObserver.observe(sectionRef.value);
+});
+
+onBeforeUnmount(() => {
+    gridObserver?.disconnect();
+    clearTimeout(addedTimer);
+});
 </script>
 
 <style scoped>
@@ -185,13 +310,34 @@ const filteredProducts = computed(() =>
 }
 
 /* ─── Product card ────────────────────────────── */
+/* Unique ProductGrid animation: blur + scale fade-in, staggered per card */
+@keyframes blurFadeIn {
+    from {
+        opacity: 0;
+        filter: blur(8px);
+        transform: scale(0.88) translateY(18px);
+    }
+    to {
+        opacity: 1;
+        filter: blur(0px);
+        transform: scale(1) translateY(0);
+    }
+}
+
 .product-card {
     background: #111827;
     border: 1px solid rgba(255,255,255,0.06);
     overflow: hidden;
+    opacity: 0;
+    animation: blurFadeIn 0.7s cubic-bezier(0.22, 1, 0.36, 1) var(--delay, 0s) forwards;
+    animation-play-state: paused;
     transition: transform 0.35s cubic-bezier(0.22, 1, 0.36, 1),
                 box-shadow 0.35s ease,
                 border-color 0.35s ease;
+}
+
+.grid-in .product-card {
+    animation-play-state: running;
 }
 
 .product-card:hover {
@@ -264,11 +410,22 @@ button {
     padding: 10px 16px;
     cursor: pointer;
     font-family: inherit;
-    transition: background 0.2s ease, color 0.2s ease;
+    min-width: 110px;
+    transition: background 0.2s ease, color 0.2s ease, transform 0.15s ease;
 }
 
 button:hover {
     background: rgba(255,255,255,0.85);
+}
+
+button:active {
+    transform: scale(0.95);
+}
+
+/* "Added" state — green flash */
+button.btn-added {
+    background: #22c55e;
+    color: #ffffff;
 }
 
 /* ─── Responsive ──────────────────────────────── */
@@ -290,5 +447,27 @@ button:hover {
     .product-grid {
         grid-template-columns: 1fr;
     }
+}
+
+@media (max-width: 480px) {
+    .tabs {
+        max-width: 100%;
+    }
+
+    .tabs button {
+        font-size: 10px;
+        letter-spacing: 0.07em;
+        padding: 11px 4px;
+    }
+}
+
+@media (max-width: 420px) {
+    .card { padding: 44px 14px 52px; }
+
+    .favorites-head h2 { font-size: 26px; }
+
+    .card-header { padding-top: 6px; margin-bottom: 14px; }
+
+    .card-header h2 { font-size: 15px; }
 }
 </style>

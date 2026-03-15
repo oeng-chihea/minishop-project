@@ -39,6 +39,7 @@
     background-size: cover;
     background-position: center;
     background-attachment: fixed;
+    animation: curtainReveal 1.3s cubic-bezier(0.77, 0, 0.175, 1) both;
 }
 
 .menu-card {
@@ -49,7 +50,7 @@
     padding: 28px 28px 24px;
     width: 220px;
     box-shadow: var(--shadow-card);
-    animation: fadeUp 0.7s ease both;
+    animation: fadeUp 0.7s ease 1.0s both;
 }
 
 .menu-card h4 {
@@ -83,7 +84,7 @@
     max-width: 520px;
     color: #fff;
     text-align: left;
-    animation: fadeUp 0.9s ease 0.2s both;
+    animation: fadeUp 0.9s ease 1.25s both;
 }
 
 .hero-content h1 {
@@ -155,6 +156,12 @@
     }
 }
 
+/* Unique Hero animation: polygon curtain drops open from the top */
+@keyframes curtainReveal {
+    from { clip-path: polygon(0 0, 100% 0, 100% 0, 0 0); }
+    to   { clip-path: polygon(0 0, 100% 0, 100% 100%, 0 100%); }
+}
+
 /* Tablet */
 @media (max-width: 980px) {
     .hero-banner {
@@ -187,7 +194,7 @@
 /* Mobile */
 @media (max-width: 640px) {
     .hero-banner {
-        min-height: 100vh;
+        min-height: 100dvh; /* use dvh on mobile for better viewport handling */
         background-attachment: scroll;
     }
 
@@ -219,5 +226,32 @@
         padding: 12px 20px;
         font-size: 13px;
     }
+}
+
+@media (max-width: 420px) {
+    .menu-card {
+        top: 52px;
+        left: 14px;
+        right: 14px;
+        padding: 14px 16px;
+    }
+
+    .menu-card h4 { font-size: 16px; margin-bottom: 10px; }
+
+    .menu-card a { font-size: 15px; margin: 8px 0; }
+
+    .hero-content {
+        left: 14px;
+        right: 14px;
+        bottom: 44px;
+    }
+
+    .hero-content h1 { font-size: 30px; }
+
+    .hero-content p  { font-size: 14px; margin-top: 10px; }
+
+    .hero-actions    { margin-top: 20px; gap: 10px; }
+
+    .btn { padding: 11px 16px; font-size: 12px; }
 }
 </style>

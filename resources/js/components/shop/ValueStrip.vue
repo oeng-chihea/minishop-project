@@ -48,7 +48,7 @@ const values = [
     },
     {
         title: 'Secure Checkout',
-        desc: 'Powered by ABA PayWay — Cambodia\'s most trusted payment platform.',
+        desc: 'Powered by Bakong KHQR — Cambodia\'s leading digital payment solution.',
         accent: '#a78bfa'
     },
     {
@@ -139,42 +139,36 @@ onBeforeUnmount(() => { if (observer) observer.disconnect(); });
     display: grid;
     grid-template-columns: repeat(4, minmax(0, 1fr));
     gap: 20px;
-    align-items: end;        /* so tilted bottoms align */
+    align-items: end;
+    /* Unique ValueStrip animation: 3D perspective for rotateY flip */
+    perspective: 1400px;
 }
 
 /* ─── Card wrapper ────────────────────────────── */
 
-/* BEFORE scroll-in: invisible, not interactable */
+/* BEFORE scroll-in: edge-on (invisible in 3D space) */
 .card-wrap {
     opacity: 0;
+    transform: rotateY(-90deg);
     pointer-events: none;
-    /* fast no-transition so it just hides */
     transition: opacity 0.01s;
 }
 
-/*
- * AFTER scroll-in: card is visible and SLEEPING (tilted).
- * Hover wakes it up (straightens).
- * This mirrors the CodePen logic exactly.
- */
+/* AFTER scroll-in: flips upright like a playing card */
 .card-wrap.card-entered {
     opacity: 1;
+    transform: rotateY(0deg);
     pointer-events: auto;
-
-    /* ── sleeping pose ── */
-    transform-origin: 50% 100%;          /* pivot at bottom centre */
-    transform: rotate(-18deg) skewX(10deg) scale(0.82);
-    box-shadow: -18px 30px 60px rgba(0,0,0,0.72);
     transition:
-        opacity   0.5s ease var(--delay),
-        transform 0.55s cubic-bezier(0.22, 1, 0.36, 1),
-        box-shadow 0.55s cubic-bezier(0.22, 1, 0.36, 1);
+        opacity  0.4s ease var(--delay),
+        transform 0.7s cubic-bezier(0.22, 1, 0.36, 1) var(--delay),
+        box-shadow 0.35s ease;
 }
 
-/* ── wake-up on hover ── */
+/* Hover: gentle lift */
 .card-wrap.card-entered:hover {
-    transform: rotate(0deg) skewX(0deg) scale(1) translateY(-6px);
-    box-shadow: 0 28px 60px rgba(0,0,0,0.5);
+    transform: rotateY(0deg) translateY(-8px) scale(1.02);
+    box-shadow: 0 28px 56px rgba(0, 0, 0, 0.5);
 }
 
 /* ─── Card article ────────────────────────────── */
@@ -239,9 +233,29 @@ onBeforeUnmount(() => { if (observer) observer.disconnect(); });
     .cards-row {
         grid-template-columns: 1fr;
         gap: 16px;
+        perspective: none; /* disable 3D on small screens for performance */
     }
-    .strip-wrap {
-        padding: 64px 0 72px;
+
+    /* Replace rotateY flip with simple translateY on mobile */
+    .card-wrap        { transform: translateY(24px); }
+    .card-wrap.card-entered {
+        transform: translateY(0);
+        transition:
+            opacity  0.45s ease var(--delay),
+            transform 0.55s cubic-bezier(0.22, 1, 0.36, 1) var(--delay);
     }
+    .card-wrap.card-entered:hover {
+        transform: translateY(-6px) scale(1.01);
+    }
+
+    .strip-wrap { padding: 64px 0 72px; }
+}
+
+@media (max-width: 420px) {
+    .strip-wrap   { padding: 48px 0 56px; }
+    .strip-inner  { padding: 0 16px; }
+    .strip-heading { font-size: 22px; }
+    .strip-header  { margin-bottom: 40px; }
+    .card-content  { padding: 24px 20px 28px; }
 }
 </style>

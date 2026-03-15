@@ -307,8 +307,8 @@ function onOverlayClick() {
     display: flex;
     flex-direction: column;
     align-items: center;
-    padding: 24px 24px 28px;
-    gap: 16px;
+    padding: 20px 20px 24px;
+    gap: 14px;
 }
 
 /* ── Amount ──────────────────────────────────────── */
@@ -342,11 +342,12 @@ function onOverlayClick() {
     background: #ffffff;
     padding: 8px;
     line-height: 0;
+    width: min(240px, calc(100% - 16px));
 }
 
 .bk-qr-img {
-    width: 240px;
-    height: 240px;
+    width: 100%;
+    aspect-ratio: 1;
     display: block;
 }
 .bk-qr-img :deep(svg) {
@@ -434,5 +435,17 @@ function onOverlayClick() {
     text-decoration: underline;
     font-size: inherit;
     padding: 0;
+}
+
+/* ── Mobile responsive ───────────────────────────── */
+@media (max-width: 420px) {
+    .bk-overlay  { padding: 10px; }
+    .bk-modal    { border-radius: 10px; }
+    .bk-header   { padding: 13px 16px; }
+    .bk-qr-body  { padding: 16px 16px 20px; gap: 12px; }
+    .bk-amount-value { font-size: 22px; }
+    .bk-instruction  { font-size: 12px; max-width: 100%; }
+    .bk-loading, .bk-error-state { padding: 32px 16px; }
+    .bk-retry-btn { padding: 9px 20px; font-size: 12px; }
 }
 </style>

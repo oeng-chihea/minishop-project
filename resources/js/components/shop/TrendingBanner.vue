@@ -17,6 +17,38 @@
     padding: 14px 0;
     overflow: hidden;
     margin-top: 0;
+    position: relative;
+}
+
+/* Unique TrendingBanner animation: shimmer light sweeps across */
+.trending-wrap::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(
+        90deg,
+        transparent 0%,
+        rgba(255, 255, 255, 0.18) 50%,
+        transparent 100%
+    );
+    width: 55%;
+    animation: shimmerSweep 3.8s ease-in-out infinite;
+    pointer-events: none;
+    z-index: 1;
+}
+
+@keyframes shimmerSweep {
+    0%   { transform: translateX(-180%); }
+    100% { transform: translateX(500%); }
+}
+
+@media (max-width: 480px) {
+    .trending-wrap { padding: 11px 0; }
+
+    .marquee-item {
+        font-size: 10px;
+        letter-spacing: 0.1em;
+    }
 }
 
 .marquee-viewport {
