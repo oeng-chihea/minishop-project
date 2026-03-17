@@ -29,7 +29,6 @@ class BakongController extends Controller
         $merchantName = (string) config('bakong.merchant_name');
         $merchantCity = (string) config('bakong.merchant_city');
         $currencyStr  = strtoupper((string) config('bakong.currency', 'USD'));
-        $lifetime     = (int) config('bakong.qr_lifetime', 300);
 
         if ($accountId === '') {
             return response()->json(['message' => 'Bakong account ID is not configured.'], 500);
@@ -45,10 +44,13 @@ class BakongController extends Controller
         // Build a bill number — alphanumeric only, max 25 chars (KHQR spec)
         $billNumber = 'INV' . now()->format('YmdHis');
 
-        // Expiration in milliseconds from now
-        $expirationMs = (string) (intval(microtime(true) * 1000) + ($lifetime * 1000));
-
         try {
+            // Generate Static QR (amount = 0) so bank apps accept it without server-side
+            // registration. Dynamic QR (amount != 0, code 12) requires the QR to be
+            // registered with Bakong's Deep Link API first; without that, apps reject it
+            // with MAPP-KHQR-INV-FORMAT. Static QR (code 11) is validated locally by the
+            // bank app — no Bakong server lookup needed. The payer will see the expected
+            // amount in their app and confirm payment.
             $info = new IndividualInfo(
                 $accountId,
                 $merchantName,
@@ -56,7 +58,7 @@ class BakongController extends Controller
                 null,           // acquiringBank
                 null,           // accountInformation
                 $currency,      // int: 840=USD, 116=KHR
-                (float) $amount,
+                0.0,            // amount=0 → Static QR (code 11); avoids MAPP-KHQR-INV-FORMAT
                 $billNumber,
             );
 
@@ -70,7 +72,6 @@ class BakongController extends Controller
                 return response()->json(['message' => 'Failed to generate KHQR. Please try again.'], 500);
             }
 
-            // Render QR string to a base64 PNG image
             $qrImage = $this->renderQrImage($qrString);
 
             Log::info('Bakong KHQR generated', [

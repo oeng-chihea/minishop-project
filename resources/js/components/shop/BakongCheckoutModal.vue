@@ -61,7 +61,8 @@
 
                     <!-- Instruction -->
                     <p v-if="!paid" class="bk-instruction">
-                        Open your <strong>Bakong</strong> or any KHQR-compatible bank app and scan this QR code to pay.
+                        Open your <strong>Bakong</strong> or any KHQR-compatible bank app and scan this QR code.
+                        When prompted, enter <strong>${{ amount.toFixed(2) }} USD</strong> as the payment amount.
                     </p>
 
                     <!-- Polling status -->
