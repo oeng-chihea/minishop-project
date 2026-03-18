@@ -117,7 +117,7 @@ class BakongController extends Controller
             'token'    => $token,
             'base_url' => $isTest
                 ? 'https://sit-api-bakong.nbc.gov.kh'
-                : 'https://api-bakong.nbc.gov.kh',
+                : 'https://bakong-proxy.liiheaoeng.workers.dev',
         ]);
     }
 
