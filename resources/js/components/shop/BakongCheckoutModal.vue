@@ -131,7 +131,7 @@ function startCountdown() {
 
 // ── Transaction polling ───────────────────────────────────
 function startPolling() {
-    if (!props.md5) return;
+    if (!props.md5 && !props.billNumber) return;
     polling.value = true;
     clearInterval(pollInterval);
 
@@ -141,7 +141,10 @@ function startPolling() {
             return;
         }
         try {
-            const { data } = await window.axios.post('/api/bakong/check-status', { md5: props.md5 });
+            const { data } = await window.axios.post('/api/bakong/check-status', {
+                md5:         props.md5,
+                bill_number: props.billNumber,
+            });
             if (data?.paid) {
                 senderAccount.value = data.response?.data?.fromAccountId || '';
                 paid.value = true;
@@ -173,7 +176,7 @@ watch(() => props.show, (val) => {
     }
 });
 
-watch(() => props.md5, (val) => {
+watch(() => props.billNumber, (val) => {
     paid.value = false;
     senderAccount.value = '';
     stopPolling();

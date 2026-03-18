@@ -100,16 +100,19 @@ class BakongController extends Controller
     }
 
     /**
-     * Poll transaction status by QR MD5 hash.
+     * Poll transaction status.
      * Called by Vue frontend via POST /api/bakong/check-status
      *
-     * Uses checkTransactionByMD5 because Static QR (code 11) payments are indexed
-     * by the QR string's MD5 in Bakong's API. checkTransactionByExternalReference
-     * only works for payments initiated via the Deep Link API, not Static QR scans.
+     * Tries MD5 first (works when Bakong indexes the exact QR hash).
+     * Falls back to instructionRef (billNumber) which Bakong records from
+     * the bill number embedded in the Static QR's tag-62 additional data.
      */
     public function checkStatus(Request $request)
     {
-        $request->validate(['md5' => 'required|string|size:32']);
+        $request->validate([
+            'md5'         => 'required|string|size:32',
+            'bill_number' => 'required|string|max:25',
+        ]);
 
         $token  = (string) config('bakong.token');
         $isTest = config('bakong.environment') !== 'production';
@@ -118,20 +121,41 @@ class BakongController extends Controller
             return response()->json(['message' => 'Bakong token is not configured.'], 500);
         }
 
-        try {
-            $bakong   = new BakongKHQR($token);
-            $response = $bakong->checkTransactionByMD5($request->md5, $isTest);
+        $bakong = new BakongKHQR($token);
 
-            // Bakong returns null data when transaction is not yet completed
+        // --- Try MD5 ---
+        try {
+            $response = $bakong->checkTransactionByMD5($request->md5, $isTest);
             $paid = isset($response['data']) && $response['data'] !== null;
 
-            return response()->json([
-                'paid'     => $paid,
+            Log::info('Bakong check-status (md5)', [
+                'md5'    => $request->md5,
+                'paid'   => $paid,
                 'response' => $response,
             ]);
 
+            if ($paid) {
+                return response()->json(['paid' => true, 'response' => $response]);
+            }
         } catch (\Throwable $e) {
-            Log::warning('Bakong check-status error', ['message' => $e->getMessage(), 'md5' => $request->md5]);
+            Log::warning('Bakong MD5 check failed', ['error' => $e->getMessage()]);
+        }
+
+        // --- Fallback: instructionRef (billNumber) ---
+        try {
+            $response = $bakong->checkTransactionByInstructionReference($request->bill_number, $isTest);
+            $paid = isset($response['data']) && $response['data'] !== null;
+
+            Log::info('Bakong check-status (instructionRef)', [
+                'bill_number' => $request->bill_number,
+                'paid'        => $paid,
+                'response'    => $response,
+            ]);
+
+            return response()->json(['paid' => $paid, 'response' => $response]);
+
+        } catch (\Throwable $e) {
+            Log::warning('Bakong instructionRef check failed', ['error' => $e->getMessage(), 'bill_number' => $request->bill_number]);
             return response()->json(['paid' => false]);
         }
     }
