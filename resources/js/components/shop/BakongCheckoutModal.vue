@@ -145,6 +145,7 @@ function startPolling() {
                 md5:         props.md5,
                 bill_number: props.billNumber,
             });
+            console.log('[Bakong poll]', data);
             if (data?.paid) {
                 senderAccount.value = data.response?.data?.fromAccountId || '';
                 paid.value = true;
@@ -155,8 +156,8 @@ function startPolling() {
                     emit('paid');
                 }, 1800);
             }
-        } catch {
-            // silently ignore transient network errors during polling
+        } catch (err) {
+            console.error('[Bakong poll error]', err?.response?.data || err.message);
         }
     }, 3000);
 }

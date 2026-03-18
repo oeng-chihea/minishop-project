@@ -122,15 +122,17 @@ class BakongController extends Controller
         }
 
         $bakong = new BakongKHQR($token);
+        $md5Error  = null;
+        $refError  = null;
 
         // --- Try MD5 ---
         try {
             $response = $bakong->checkTransactionByMD5($request->md5, $isTest);
             $paid = isset($response['data']) && $response['data'] !== null;
 
-            Log::info('Bakong check-status (md5)', [
-                'md5'    => $request->md5,
-                'paid'   => $paid,
+            Log::error('Bakong check-status (md5)', [
+                'md5'      => $request->md5,
+                'paid'     => $paid,
                 'response' => $response,
             ]);
 
@@ -138,7 +140,8 @@ class BakongController extends Controller
                 return response()->json(['paid' => true, 'response' => $response]);
             }
         } catch (\Throwable $e) {
-            Log::warning('Bakong MD5 check failed', ['error' => $e->getMessage()]);
+            $md5Error = $e->getMessage();
+            Log::error('Bakong MD5 check failed', ['error' => $md5Error, 'md5' => $request->md5]);
         }
 
         // --- Fallback: instructionRef (billNumber) ---
@@ -146,7 +149,7 @@ class BakongController extends Controller
             $response = $bakong->checkTransactionByInstructionReference($request->bill_number, $isTest);
             $paid = isset($response['data']) && $response['data'] !== null;
 
-            Log::info('Bakong check-status (instructionRef)', [
+            Log::error('Bakong check-status (instructionRef)', [
                 'bill_number' => $request->bill_number,
                 'paid'        => $paid,
                 'response'    => $response,
@@ -155,8 +158,13 @@ class BakongController extends Controller
             return response()->json(['paid' => $paid, 'response' => $response]);
 
         } catch (\Throwable $e) {
-            Log::warning('Bakong instructionRef check failed', ['error' => $e->getMessage(), 'bill_number' => $request->bill_number]);
-            return response()->json(['paid' => false]);
+            $refError = $e->getMessage();
+            Log::error('Bakong instructionRef check failed', ['error' => $refError, 'bill_number' => $request->bill_number]);
+            return response()->json([
+                'paid'      => false,
+                'debug_md5' => $md5Error,
+                'debug_ref' => $refError,
+            ]);
         }
     }
 
