@@ -45,12 +45,11 @@ class BakongController extends Controller
         $billNumber = 'INV' . now()->format('YmdHis');
 
         try {
-            // Generate Static QR (amount = 0) so bank apps accept it without server-side
-            // registration. Dynamic QR (amount != 0, code 12) requires the QR to be
-            // registered with Bakong's Deep Link API first; without that, apps reject it
-            // with MAPP-KHQR-INV-FORMAT. Static QR (code 11) is validated locally by the
-            // bank app — no Bakong server lookup needed. The payer will see the expected
-            // amount in their app and confirm payment.
+            // Generate Dynamic QR (amount > 0, code 12) so Bakong's production API can
+            // track the payment via checkTransactionByMD5. Static QR (amount=0, code 11)
+            // is NOT trackable by MD5 in production — the API returns null data for static
+            // QR payments. Dynamic QR embeds the exact amount so the payer just scans and
+            // confirms; no manual entry needed. This is the correct approach for e-commerce.
             $info = new IndividualInfo(
                 $accountId,
                 $merchantName,
@@ -58,7 +57,7 @@ class BakongController extends Controller
                 null,           // acquiringBank
                 null,           // accountInformation
                 $currency,      // int: 840=USD, 116=KHR
-                0.0,            // amount=0 → Static QR (code 11); avoids MAPP-KHQR-INV-FORMAT
+                $amount,        // real cart total → Dynamic QR (code 12); trackable by MD5
                 $billNumber,
             );
 
