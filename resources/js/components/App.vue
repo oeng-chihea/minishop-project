@@ -34,7 +34,7 @@
             :loading="bakongModal.loading"
             :error="bakongModal.error"
             :qr-image="bakongModal.qrImage"
-            :md5="bakongModal.md5"
+            :bill-number="bakongModal.billNumber"
             :amount="bakongModal.amount"
             :lifetime="300"
             @close="closeBakongModal"
@@ -215,12 +215,12 @@ const clearCart = () => {
 
 // ── Bakong KHQR checkout ──────────────────────────────────
 const bakongModal = reactive({
-    show:    false,
-    loading: false,
-    error:   '',
-    qrImage: '',
-    md5:     '',
-    amount:  0,
+    show:       false,
+    loading:    false,
+    error:      '',
+    qrImage:    '',
+    billNumber: '',
+    amount:     0,
 });
 
 const checkoutWithBakong = async () => {
@@ -232,12 +232,12 @@ const checkoutWithBakong = async () => {
     checkoutLoading.value = true;
 
     // Open modal in loading state
-    bakongModal.show    = true;
-    bakongModal.loading = true;
-    bakongModal.error   = '';
-    bakongModal.qrImage = '';
-    bakongModal.md5     = '';
-    bakongModal.amount  = 0;
+    bakongModal.show       = true;
+    bakongModal.loading    = true;
+    bakongModal.error      = '';
+    bakongModal.qrImage    = '';
+    bakongModal.billNumber = '';
+    bakongModal.amount     = 0;
 
     try {
         const items = cart.value.map((item) => ({
@@ -248,10 +248,10 @@ const checkoutWithBakong = async () => {
 
         const { data } = await window.axios.post('/api/bakong/checkout', { items });
 
-        bakongModal.loading = false;
-        bakongModal.qrImage = data.qr_image  || '';
-        bakongModal.md5     = data.md5        || '';
-        bakongModal.amount  = data.amount     || 0;
+        bakongModal.loading    = false;
+        bakongModal.qrImage    = data.qr_image    || '';
+        bakongModal.billNumber = data.bill_number  || '';
+        bakongModal.amount     = data.amount       || 0;
 
         // Close the cart panel once QR is ready
         isCartOpen.value = false;
@@ -266,11 +266,11 @@ const checkoutWithBakong = async () => {
 };
 
 const closeBakongModal = () => {
-    bakongModal.show    = false;
-    bakongModal.loading = false;
-    bakongModal.error   = '';
-    bakongModal.qrImage = '';
-    bakongModal.md5     = '';
+    bakongModal.show       = false;
+    bakongModal.loading    = false;
+    bakongModal.error      = '';
+    bakongModal.qrImage    = '';
+    bakongModal.billNumber = '';
 };
 
 const onBakongPaid = () => {

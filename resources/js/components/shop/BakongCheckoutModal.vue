@@ -62,7 +62,7 @@
 
                     <!-- Instruction -->
                     <p v-if="!paid" class="bk-instruction">
-                        Open your <strong>Bakong</strong> or any KHQR-compatible bank app, scan this QR code, and confirm the payment of <strong>${{ amount.toFixed(2) }} USD</strong>.
+                        Open your <strong>Bakong</strong> or any KHQR-compatible bank app and scan this QR code. When prompted, enter <strong>${{ amount.toFixed(2) }} USD</strong> as the payment amount.
                     </p>
 
                     <!-- Polling status -->
@@ -89,13 +89,13 @@
 import { computed, onBeforeUnmount, ref, watch } from 'vue';
 
 const props = defineProps({
-    show:     { type: Boolean, required: true },
-    loading:  { type: Boolean, default: false },
-    error:    { type: String,  default: '' },
-    qrImage:  { type: String,  default: '' },
-    md5:      { type: String,  default: '' },
-    amount:   { type: Number,  default: 0 },
-    lifetime: { type: Number,  default: 300 }, // seconds
+    show:       { type: Boolean, required: true },
+    loading:    { type: Boolean, default: false },
+    error:      { type: String,  default: '' },
+    qrImage:    { type: String,  default: '' },
+    billNumber: { type: String,  default: '' },
+    amount:     { type: Number,  default: 0 },
+    lifetime:   { type: Number,  default: 300 }, // seconds
 });
 
 const emit = defineEmits(['close', 'paid', 'retry']);
@@ -130,7 +130,7 @@ function startCountdown() {
 
 // ── Transaction polling ───────────────────────────────────
 function startPolling() {
-    if (!props.md5) return;
+    if (!props.billNumber) return;
     polling.value = true;
     clearInterval(pollInterval);
 
@@ -140,7 +140,7 @@ function startPolling() {
             return;
         }
         try {
-            const { data } = await window.axios.post('/api/bakong/check-status', { md5: props.md5 });
+            const { data } = await window.axios.post('/api/bakong/check-status', { bill_number: props.billNumber });
             if (data?.paid) {
                 senderAccount.value = data.response?.data?.fromAccountId || '';
                 paid.value = true;
@@ -172,7 +172,7 @@ watch(() => props.show, (val) => {
     }
 });
 
-watch(() => props.md5, (val) => {
+watch(() => props.billNumber, (val) => {
     paid.value = false;
     senderAccount.value = '';
     stopPolling();

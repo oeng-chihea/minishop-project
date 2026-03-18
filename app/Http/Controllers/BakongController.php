@@ -45,11 +45,13 @@ class BakongController extends Controller
         $billNumber = 'INV' . now()->format('YmdHis');
 
         try {
-            // Generate Dynamic QR (amount > 0, code 12) so Bakong's production API can
-            // track the payment via checkTransactionByMD5. Static QR (amount=0, code 11)
-            // is NOT trackable by MD5 in production — the API returns null data for static
-            // QR payments. Dynamic QR embeds the exact amount so the payer just scans and
-            // confirms; no manual entry needed. This is the correct approach for e-commerce.
+            // Static QR (amount=0, code 11) — required because Dynamic QR (code 12) needs
+            // to be registered with Bakong's Deep Link API first; without that, bank apps
+            // (ABA, Wing, etc.) reject it with MAPP-KHQR-INV-FORMAT. Static QR is validated
+            // locally by the bank app so it always scans fine. Payment is detected via
+            // checkTransactionByExternalReference(billNumber) instead of MD5 — this works
+            // for Static QR because the billNumber is embedded in the QR and Bakong records
+            // it as the external reference when the payer confirms the transaction.
             $info = new IndividualInfo(
                 $accountId,
                 $merchantName,
@@ -57,8 +59,8 @@ class BakongController extends Controller
                 null,           // acquiringBank
                 null,           // accountInformation
                 $currency,      // int: 840=USD, 116=KHR
-                $amount,        // real cart total → Dynamic QR (code 12); trackable by MD5
-                $billNumber,
+                0.0,            // amount=0 → Static QR (code 11); no Deep Link registration needed
+                $billNumber,    // unique per checkout; used as externalRef for payment detection
             );
 
             $khqrResponse = BakongKHQR::generateIndividual($info);
@@ -98,12 +100,17 @@ class BakongController extends Controller
     }
 
     /**
-     * Poll transaction status by MD5 hash.
+     * Poll transaction status by bill number (external reference).
      * Called by Vue frontend via POST /api/bakong/check-status
+     *
+     * Uses checkTransactionByExternalReference instead of checkTransactionByMD5
+     * because Static QR (code 11) payments are tracked by bill number in Bakong's
+     * production API. MD5 tracking only works for Dynamic QR (code 12) which requires
+     * Deep Link API registration and is rejected by bank apps without it.
      */
     public function checkStatus(Request $request)
     {
-        $request->validate(['md5' => 'required|string|size:32']);
+        $request->validate(['bill_number' => 'required|string|max:25']);
 
         $token  = (string) config('bakong.token');
         $isTest = config('bakong.environment') !== 'production';
@@ -114,7 +121,7 @@ class BakongController extends Controller
 
         try {
             $bakong   = new BakongKHQR($token);
-            $response = $bakong->checkTransactionByMD5($request->md5, $isTest);
+            $response = $bakong->checkTransactionByExternalReference($request->bill_number, $isTest);
 
             // Bakong returns null data when transaction is not yet completed
             $paid = isset($response['data']) && $response['data'] !== null;
@@ -125,7 +132,7 @@ class BakongController extends Controller
             ]);
 
         } catch (\Throwable $e) {
-            Log::warning('Bakong check-status error', ['message' => $e->getMessage()]);
+            Log::warning('Bakong check-status error', ['message' => $e->getMessage(), 'bill_number' => $request->bill_number]);
             return response()->json(['paid' => false]);
         }
     }
