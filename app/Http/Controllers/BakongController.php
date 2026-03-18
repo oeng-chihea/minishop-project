@@ -121,51 +121,72 @@ class BakongController extends Controller
             return response()->json(['message' => 'Bakong token is not configured.'], 500);
         }
 
-        $bakong = new BakongKHQR($token);
-        $md5Error  = null;
-        $refError  = null;
+        $baseUrl = $isTest
+            ? 'https://sit-api-bakong.nbc.gov.kh'
+            : 'https://api-bakong.nbc.gov.kh';
 
         // --- Try MD5 ---
-        try {
-            $response = $bakong->checkTransactionByMD5($request->md5, $isTest);
+        $response = $this->bakongPost("{$baseUrl}/v1/check_transaction_by_md5", ['md5' => $request->md5], $token);
+
+        if ($response !== null) {
             $paid = isset($response['data']) && $response['data'] !== null;
-
-            Log::error('Bakong check-status (md5)', [
-                'md5'      => $request->md5,
-                'paid'     => $paid,
-                'response' => $response,
-            ]);
-
+            Log::error('Bakong check-status (md5)', ['md5' => $request->md5, 'paid' => $paid, 'response' => $response]);
             if ($paid) {
                 return response()->json(['paid' => true, 'response' => $response]);
             }
-        } catch (\Throwable $e) {
-            $md5Error = $e->getMessage();
-            Log::error('Bakong MD5 check failed', ['error' => $md5Error, 'md5' => $request->md5]);
+        } else {
+            Log::error('Bakong MD5 check returned null (request failed)', ['md5' => $request->md5]);
         }
 
         // --- Fallback: instructionRef (billNumber) ---
-        try {
-            $response = $bakong->checkTransactionByInstructionReference($request->bill_number, $isTest);
+        $response = $this->bakongPost("{$baseUrl}/v1/check_transaction_by_instruction_ref", ['instructionRef' => $request->bill_number], $token);
+
+        if ($response !== null) {
             $paid = isset($response['data']) && $response['data'] !== null;
-
-            Log::error('Bakong check-status (instructionRef)', [
-                'bill_number' => $request->bill_number,
-                'paid'        => $paid,
-                'response'    => $response,
-            ]);
-
+            Log::error('Bakong check-status (instructionRef)', ['bill_number' => $request->bill_number, 'paid' => $paid, 'response' => $response]);
             return response()->json(['paid' => $paid, 'response' => $response]);
-
-        } catch (\Throwable $e) {
-            $refError = $e->getMessage();
-            Log::error('Bakong instructionRef check failed', ['error' => $refError, 'bill_number' => $request->bill_number]);
-            return response()->json([
-                'paid'      => false,
-                'debug_md5' => $md5Error,
-                'debug_ref' => $refError,
-            ]);
         }
+
+        Log::error('Bakong all checks failed', ['md5' => $request->md5, 'bill_number' => $request->bill_number]);
+        return response()->json(['paid' => false]);
+    }
+
+    /**
+     * POST to a Bakong API endpoint with a browser-like User-Agent.
+     * The library's default cURL has no User-Agent which some WAFs block with 403.
+     *
+     * @return array<string,mixed>|null  null on network/HTTP failure
+     */
+    private function bakongPost(string $url, array $payload, string $token): ?array
+    {
+        $ch = curl_init($url);
+        curl_setopt_array($ch, [
+            CURLOPT_RETURNTRANSFER => true,
+            CURLOPT_POST           => true,
+            CURLOPT_POSTFIELDS     => json_encode($payload),
+            CURLOPT_TIMEOUT        => 15,
+            CURLOPT_CONNECTTIMEOUT => 10,
+            CURLOPT_FOLLOWLOCATION => true,
+            CURLOPT_HTTPHEADER     => [
+                'Content-Type: application/json',
+                'Accept: application/json',
+                'Authorization: Bearer ' . $token,
+                'User-Agent: Mozilla/5.0 (compatible; BakongKHQR/1.0)',
+            ],
+        ]);
+
+        $body     = curl_exec($ch);
+        $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+        $curlErr  = curl_error($ch);
+        curl_close($ch);
+
+        if ($body === false || $httpCode !== 200) {
+            Log::error('bakongPost failed', ['url' => $url, 'http' => $httpCode, 'curl_error' => $curlErr, 'body' => substr((string) $body, 0, 300)]);
+            return null;
+        }
+
+        $decoded = json_decode($body, true);
+        return is_array($decoded) ? $decoded : null;
     }
 
     /**
