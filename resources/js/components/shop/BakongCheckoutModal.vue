@@ -77,6 +77,14 @@
                     <div v-if="!paid && timeLeft <= 0" class="bk-expired">
                         QR code has expired. <button type="button" class="bk-link" @click="$emit('retry')">Generate a new one</button>
                     </div>
+
+                    <!-- Manual confirm button -->
+                    <div v-if="!paid && timeLeft > 0" class="bk-manual-row">
+                        <p class="bk-manual-hint">Already paid? Tap the button below.</p>
+                        <button type="button" class="bk-manual-btn" @click="confirmManually">
+                            ✓ I've Paid
+                        </button>
+                    </div>
                 </div>
 
             </div>
@@ -181,6 +189,14 @@ function stopPolling() {
     clearInterval(pollInterval);
     clearInterval(countdownInterval);
     polling.value = false;
+}
+
+// Manual confirmation — customer taps "I've Paid" after scanning
+function confirmManually() {
+    paid.value    = true;
+    polling.value = false;
+    stopPolling();
+    setTimeout(() => emit('paid'), 1800);
 }
 
 // ── Watchers ──────────────────────────────────────────────
@@ -466,6 +482,39 @@ function onOverlayClick() {
     font-size: inherit;
     padding: 0;
 }
+
+/* ── Manual confirm ──────────────────────────────── */
+.bk-manual-row {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    width: 100%;
+    padding-top: 4px;
+    border-top: 1px solid rgba(255, 255, 255, 0.07);
+}
+
+.bk-manual-hint {
+    margin: 0;
+    font-size: 11px;
+    color: rgba(255, 255, 255, 0.3);
+}
+
+.bk-manual-btn {
+    width: 100%;
+    padding: 11px;
+    background: #22c55e;
+    color: #fff;
+    border: 0;
+    border-radius: 6px;
+    font-size: 14px;
+    font-weight: 700;
+    letter-spacing: 0.02em;
+    cursor: pointer;
+    transition: opacity 0.2s;
+}
+
+.bk-manual-btn:hover { opacity: 0.88; }
 
 /* ── Mobile responsive ───────────────────────────── */
 @media (max-width: 420px) {
