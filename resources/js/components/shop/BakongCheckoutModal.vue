@@ -88,14 +88,15 @@
 import { computed, onBeforeUnmount, ref, watch } from 'vue';
 
 const props = defineProps({
-    show:       { type: Boolean, required: true },
-    loading:    { type: Boolean, default: false },
-    error:      { type: String,  default: '' },
-    qrImage:    { type: String,  default: '' },
-    billNumber: { type: String,  default: '' },
-    md5:        { type: String,  default: '' },
-    amount:     { type: Number,  default: 0 },
-    lifetime:   { type: Number,  default: 300 }, // seconds
+    show:        { type: Boolean, required: true },
+    loading:     { type: Boolean, default: false },
+    error:       { type: String,  default: '' },
+    qrImage:     { type: String,  default: '' },
+    billNumber:  { type: String,  default: '' },
+    md5:         { type: String,  default: '' },
+    amount:      { type: Number,  default: 0 },
+    lifetime:    { type: Number,  default: 300 }, // seconds
+    bakongToken: { type: String,  default: '' },  // used to poll Bakong directly from browser
 });
 
 const emit = defineEmits(['close', 'paid', 'retry']);
@@ -128,14 +129,24 @@ function startCountdown() {
 }
 
 // ── Transaction polling ───────────────────────────────────
+// Polls Bakong API directly from the browser using the user's Cambodian ISP IP.
+// The live server's cloud datacenter IP is blocked by Bakong's CloudFront WAF,
+// but the user's browser IP (Cambodian ISP) is allowed through.
 async function pollBakong() {
+    if (!props.md5 || !props.bakongToken) return false;
     try {
-        const { data } = await window.axios.post('/api/bakong/check-status', {
-            md5:        props.md5,
-            billNumber: props.billNumber,
+        const response = await fetch('https://api-bakong.nbc.gov.kh/v1/check_transaction_by_md5', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${props.bakongToken}`,
+            },
+            body: JSON.stringify({ md5: props.md5 }),
         });
+        const data = await response.json();
         console.log('[Bakong poll]', data);
-        return data?.paid === true;
+        // responseCode 0 = success, data !== null = payment found
+        return data?.responseCode === 0 && data?.data != null;
     } catch (e) {
         console.warn('[Bakong poll error]', e.message);
         return false;

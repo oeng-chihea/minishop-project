@@ -85,12 +85,13 @@ class BakongController extends Controller
             ]);
 
             return response()->json([
-                'qr_string' => $qrString,
-                'qr_image'  => $qrImage,   // "data:image/png;base64,..."
-                'md5'       => $md5,
-                'amount'    => $amount,
-                'currency'  => $currencyStr,
-                'bill_number' => $billNumber,
+                'qr_string'    => $qrString,
+                'qr_image'     => $qrImage,
+                'md5'          => $md5,
+                'amount'       => $amount,
+                'currency'     => $currencyStr,
+                'bill_number'  => $billNumber,
+                'bakong_token' => config('bakong.token'), // browser polls Bakong directly
             ]);
 
         } catch (\Throwable $e) {
@@ -248,12 +249,19 @@ class BakongController extends Controller
             'dns_works'   => ($ip !== 'api-bakong.nbc.gov.kh'),
         ];
 
-        // Test 3: server info
+        // Test 3: server info + real public IP
+        $publicIp = 'unknown';
+        $ipCh = curl_init('https://api.ipify.org');
+        curl_setopt_array($ipCh, [CURLOPT_RETURNTRANSFER => true, CURLOPT_TIMEOUT => 5]);
+        $publicIp = trim((string) curl_exec($ipCh));
+        curl_close($ipCh);
+
         $results['server'] = [
-            'php_version'    => PHP_VERSION,
-            'server_ip'      => $_SERVER['SERVER_ADDR'] ?? gethostbyname(gethostname()),
-            'curl_version'   => curl_version()['version'],
-            'openssl_version'=> curl_version()['ssl_version'],
+            'php_version'     => PHP_VERSION,
+            'server_internal_ip' => $_SERVER['SERVER_ADDR'] ?? gethostbyname(gethostname()),
+            'server_public_ip'   => $publicIp,   // ← THIS is what Bakong sees
+            'curl_version'    => curl_version()['version'],
+            'openssl_version' => curl_version()['ssl_version'],
         ];
 
         return response()->json($results);

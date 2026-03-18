@@ -38,6 +38,7 @@
             :md5="bakongModal.md5"
             :amount="bakongModal.amount"
             :lifetime="300"
+            :bakong-token="bakongModal.token"
             @close="closeBakongModal"
             @paid="onBakongPaid"
             @retry="checkoutWithBakong"
@@ -223,6 +224,7 @@ const bakongModal = reactive({
     billNumber: '',
     md5:        '',
     amount:     0,
+    token:      '',
 });
 
 const checkoutWithBakong = async () => {
@@ -251,10 +253,11 @@ const checkoutWithBakong = async () => {
         const { data } = await window.axios.post('/api/bakong/checkout', { items });
 
         bakongModal.loading    = false;
-        bakongModal.qrImage    = data.qr_image    || '';
-        bakongModal.billNumber = data.bill_number  || '';
-        bakongModal.md5        = data.md5          || '';
-        bakongModal.amount     = data.amount       || 0;
+        bakongModal.qrImage    = data.qr_image     || '';
+        bakongModal.billNumber = data.bill_number   || '';
+        bakongModal.md5        = data.md5           || '';
+        bakongModal.amount     = data.amount        || 0;
+        bakongModal.token      = data.bakong_token  || '';
 
         // Close the cart panel once QR is ready
         isCartOpen.value = false;
@@ -275,6 +278,7 @@ const closeBakongModal = () => {
     bakongModal.qrImage    = '';
     bakongModal.billNumber = '';
     bakongModal.md5        = '';
+    bakongModal.token      = '';
 };
 
 const onBakongPaid = () => {
