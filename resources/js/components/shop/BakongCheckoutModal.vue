@@ -135,13 +135,14 @@ function startCountdown() {
 async function pollBakong() {
     if (!props.md5) return false;
     try {
-        // Call Bakong API directly from browser (Cambodian ISP IP bypasses CloudFront block).
-        // No Authorization header — Bakong CORS policy blocks the 'authorization' header
-        // from cross-origin requests. The public MD5 check endpoint works without auth.
-        const response = await fetch('https://api-bakong.nbc.gov.kh/v1/check_transaction_by_md5', {
+        // Route through Cloudflare Worker which adds Authorization header server-side.
+        // Bakong CORS blocks 'Authorization' from browser, but allows custom 'X-Bakong-Token'.
+        // Worker converts X-Bakong-Token → Authorization: Bearer before calling Bakong API.
+        const response = await fetch('https://bakong-proxy.liiheaoeng.workers.dev/v1/check_transaction_by_md5', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
+                'X-Bakong-Token': props.bakongToken,
             },
             body: JSON.stringify({ md5: props.md5 }),
         });
