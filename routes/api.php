@@ -24,3 +24,6 @@ Route::post('/bakong/checkout', [BakongController::class, 'initiate']);
 
 // Bakong KHQR - poll transaction status by MD5 (called by Vue frontend every few seconds)
 Route::post('/bakong/check-status', [BakongController::class, 'checkStatus']);
+
+// Temporary diagnostic route - remove after debugging
+Route::get('/bakong/diagnose', [BakongController::class, 'diagnose']);

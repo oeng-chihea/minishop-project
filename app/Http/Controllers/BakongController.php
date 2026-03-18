@@ -190,6 +190,63 @@ class BakongController extends Controller
     }
 
     /**
+     * Temporary diagnostic endpoint - shows exactly why live server can't reach Bakong API.
+     * Access via: GET /api/bakong/diagnose
+     * Remove after debugging is done.
+     */
+    public function diagnose()
+    {
+        $token = (string) config('bakong.token');
+        $url   = 'https://api-bakong.nbc.gov.kh/v1/check_transaction_by_md5';
+        $results = [];
+
+        // Test 1: basic connectivity
+        $ch = curl_init($url);
+        curl_setopt_array($ch, [
+            CURLOPT_RETURNTRANSFER => true,
+            CURLOPT_POST           => true,
+            CURLOPT_POSTFIELDS     => json_encode(['md5' => 'test']),
+            CURLOPT_TIMEOUT        => 15,
+            CURLOPT_CONNECTTIMEOUT => 10,
+            CURLOPT_HTTPHEADER     => [
+                'Content-Type: application/json',
+                'Accept: application/json',
+                'Authorization: Bearer ' . $token,
+                'User-Agent: Mozilla/5.0 (compatible; BakongKHQR/1.0)',
+            ],
+        ]);
+        $body    = curl_exec($ch);
+        $code    = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+        $curlErr = curl_error($ch);
+        $curlErrNo = curl_errno($ch);
+        curl_close($ch);
+
+        $results['bakong_api'] = [
+            'http_code'    => $code,
+            'curl_error'   => $curlErr,
+            'curl_errno'   => $curlErrNo,
+            'body_preview' => substr((string) $body, 0, 500),
+        ];
+
+        // Test 2: DNS resolution
+        $ip = gethostbyname('api-bakong.nbc.gov.kh');
+        $results['dns'] = [
+            'resolved_ip' => $ip,
+            'dns_works'   => ($ip !== 'api-bakong.nbc.gov.kh'),
+        ];
+
+        // Test 3: server info
+        $results['server'] = [
+            'php_version'    => PHP_VERSION,
+            'server_ip'      => $_SERVER['SERVER_ADDR'] ?? gethostbyname(gethostname()),
+            'curl_version'   => curl_version()['version'],
+            'openssl_version'=> curl_version()['ssl_version'],
+        ];
+
+        return response()->json($results);
+    }
+
+    /**
      * Generate a base64-encoded PNG QR image from a KHQR string.
      */
     private function renderQrImage(string $data): string
