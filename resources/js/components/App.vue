@@ -35,6 +35,7 @@
             :error="bakongModal.error"
             :qr-image="bakongModal.qrImage"
             :bill-number="bakongModal.billNumber"
+            :md5="bakongModal.md5"
             :amount="bakongModal.amount"
             :lifetime="300"
             @close="closeBakongModal"
@@ -220,6 +221,7 @@ const bakongModal = reactive({
     error:      '',
     qrImage:    '',
     billNumber: '',
+    md5:        '',
     amount:     0,
 });
 
@@ -251,6 +253,7 @@ const checkoutWithBakong = async () => {
         bakongModal.loading    = false;
         bakongModal.qrImage    = data.qr_image    || '';
         bakongModal.billNumber = data.bill_number  || '';
+        bakongModal.md5        = data.md5          || '';
         bakongModal.amount     = data.amount       || 0;
 
         // Close the cart panel once QR is ready
@@ -271,6 +274,7 @@ const closeBakongModal = () => {
     bakongModal.error      = '';
     bakongModal.qrImage    = '';
     bakongModal.billNumber = '';
+    bakongModal.md5        = '';
 };
 
 const onBakongPaid = () => {

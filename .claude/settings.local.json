@@ -6,7 +6,8 @@
       "Bash(find 'C:/Laravel project/website_project/vendor' -type d -name *bakong* -o -type d -name *khqr* -o -type d -name *KHQR*)",
       "Bash(grep -r \"BakongCheckoutModal\\\\|initiateBakong\\\\|bakong\" 'C:/Laravel project/website_project/resources/js/' --include=*.vue -n)",
       "Bash(php -r \":*)",
-      "Bash(php artisan:*)"
+      "Bash(php artisan:*)",
+      "Bash(xargs ls:*)"
     ]
   }
 }

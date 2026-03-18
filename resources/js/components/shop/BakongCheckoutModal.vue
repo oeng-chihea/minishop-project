@@ -94,6 +94,7 @@ const props = defineProps({
     error:      { type: String,  default: '' },
     qrImage:    { type: String,  default: '' },
     billNumber: { type: String,  default: '' },
+    md5:        { type: String,  default: '' },
     amount:     { type: Number,  default: 0 },
     lifetime:   { type: Number,  default: 300 }, // seconds
 });
@@ -130,7 +131,7 @@ function startCountdown() {
 
 // ── Transaction polling ───────────────────────────────────
 function startPolling() {
-    if (!props.billNumber) return;
+    if (!props.md5) return;
     polling.value = true;
     clearInterval(pollInterval);
 
@@ -140,7 +141,7 @@ function startPolling() {
             return;
         }
         try {
-            const { data } = await window.axios.post('/api/bakong/check-status', { bill_number: props.billNumber });
+            const { data } = await window.axios.post('/api/bakong/check-status', { md5: props.md5 });
             if (data?.paid) {
                 senderAccount.value = data.response?.data?.fromAccountId || '';
                 paid.value = true;
@@ -172,7 +173,7 @@ watch(() => props.show, (val) => {
     }
 });
 
-watch(() => props.billNumber, (val) => {
+watch(() => props.md5, (val) => {
     paid.value = false;
     senderAccount.value = '';
     stopPolling();

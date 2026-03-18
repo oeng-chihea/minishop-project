@@ -100,17 +100,16 @@ class BakongController extends Controller
     }
 
     /**
-     * Poll transaction status by bill number (external reference).
+     * Poll transaction status by QR MD5 hash.
      * Called by Vue frontend via POST /api/bakong/check-status
      *
-     * Uses checkTransactionByExternalReference instead of checkTransactionByMD5
-     * because Static QR (code 11) payments are tracked by bill number in Bakong's
-     * production API. MD5 tracking only works for Dynamic QR (code 12) which requires
-     * Deep Link API registration and is rejected by bank apps without it.
+     * Uses checkTransactionByMD5 because Static QR (code 11) payments are indexed
+     * by the QR string's MD5 in Bakong's API. checkTransactionByExternalReference
+     * only works for payments initiated via the Deep Link API, not Static QR scans.
      */
     public function checkStatus(Request $request)
     {
-        $request->validate(['bill_number' => 'required|string|max:25']);
+        $request->validate(['md5' => 'required|string|size:32']);
 
         $token  = (string) config('bakong.token');
         $isTest = config('bakong.environment') !== 'production';
@@ -121,7 +120,7 @@ class BakongController extends Controller
 
         try {
             $bakong   = new BakongKHQR($token);
-            $response = $bakong->checkTransactionByExternalReference($request->bill_number, $isTest);
+            $response = $bakong->checkTransactionByMD5($request->md5, $isTest);
 
             // Bakong returns null data when transaction is not yet completed
             $paid = isset($response['data']) && $response['data'] !== null;
@@ -132,7 +131,7 @@ class BakongController extends Controller
             ]);
 
         } catch (\Throwable $e) {
-            Log::warning('Bakong check-status error', ['message' => $e->getMessage(), 'bill_number' => $request->bill_number]);
+            Log::warning('Bakong check-status error', ['message' => $e->getMessage(), 'md5' => $request->md5]);
             return response()->json(['paid' => false]);
         }
     }
