@@ -135,15 +135,12 @@ function startCountdown() {
 async function pollBakong() {
     if (!props.md5) return false;
     try {
-        // Route through Cloudflare Worker which adds Authorization header server-side.
-        // Bakong CORS blocks 'Authorization' from browser, but allows custom 'X-Bakong-Token'.
-        // Worker converts X-Bakong-Token → Authorization: Bearer before calling Bakong API.
-        const response = await fetch('https://bakong-proxy.liiheaoeng.workers.dev/v1/check_transaction_by_md5', {
+        // Try passing token as URL query param — bypasses CORS header restriction.
+        // Bakong CORS blocks 'Authorization' header but URL params are not affected by CORS.
+        const url = `https://api-bakong.nbc.gov.kh/v1/check_transaction_by_md5?token=${encodeURIComponent(props.bakongToken)}`;
+        const response = await fetch(url, {
             method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'X-Bakong-Token': props.bakongToken,
-            },
+            headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ md5: props.md5 }),
         });
         const data = await response.json();
