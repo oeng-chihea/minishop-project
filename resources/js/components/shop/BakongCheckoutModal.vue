@@ -56,6 +56,7 @@
                                 <polyline points="22 4 12 14.01 9 11.01"/>
                             </svg>
                             <span>Payment Received!</span>
+                            <span v-if="senderAccount" class="bk-sender">From: {{ senderAccount }}</span>
                         </div>
                     </div>
 
@@ -100,9 +101,10 @@ const props = defineProps({
 
 const emit = defineEmits(['close', 'paid', 'retry']);
 
-const paid    = ref(false);
-const polling = ref(false);
-const timeLeft = ref(props.lifetime);
+const paid          = ref(false);
+const polling       = ref(false);
+const timeLeft      = ref(props.lifetime);
+const senderAccount = ref('');
 
 let pollInterval  = null;
 let countdownInterval = null;
@@ -141,6 +143,7 @@ function startPolling() {
         try {
             const { data } = await window.axios.post('/api/bakong/check-status', { md5: props.md5 });
             if (data?.paid) {
+                senderAccount.value = data.response?.data?.fromAccountId || '';
                 paid.value = true;
                 polling.value = false;
                 stopPolling();
@@ -166,11 +169,13 @@ watch(() => props.show, (val) => {
     if (!val) {
         stopPolling();
         paid.value = false;
+        senderAccount.value = '';
     }
 });
 
 watch(() => props.md5, (val) => {
     paid.value = false;
+    senderAccount.value = '';
     stopPolling();
     if (val && props.show) {
         startCountdown();
@@ -370,6 +375,13 @@ function onOverlayClick() {
     color: #22c55e;
     font-weight: 700;
     font-size: 15px;
+}
+
+.bk-sender {
+    font-size: 12px;
+    font-weight: 500;
+    color: rgba(255, 255, 255, 0.75);
+    letter-spacing: 0.01em;
 }
 
 /* ── Instruction ─────────────────────────────────── */
