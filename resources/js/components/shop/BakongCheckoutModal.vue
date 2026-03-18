@@ -64,10 +64,10 @@
                         Open your <strong>Bakong</strong> or any KHQR-compatible bank app and scan this QR code. When prompted, enter <strong>${{ amount.toFixed(2) }} USD</strong> as the payment amount.
                     </p>
 
-                    <!-- Polling status -->
+                    <!-- Status row -->
                     <div v-if="!paid" class="bk-poll-row">
-                        <span class="bk-dot" :class="{ pulse: polling }"></span>
-                        <span class="bk-poll-text">{{ polling ? 'Waiting for payment confirmation…' : 'Checking payment…' }}</span>
+                        <span class="bk-dot pulse"></span>
+                        <span class="bk-poll-text">Scan &amp; pay, then tap the button below</span>
                     </div>
 
                     <!-- Countdown timer -->
@@ -113,7 +113,6 @@ const paid     = ref(false);
 const polling  = ref(false);
 const timeLeft = ref(props.lifetime);
 
-let pollInterval  = null;
 let countdownInterval = null;
 
 // ── Countdown timer ──────────────────────────────────────
@@ -131,59 +130,11 @@ function startCountdown() {
             timeLeft.value -= 1;
         } else {
             clearInterval(countdownInterval);
-            stopPolling();
         }
     }, 1000);
 }
 
-// ── Transaction polling ───────────────────────────────────
-// Polls Bakong /local/v1/ endpoint directly from the browser — no Authorization
-// header needed (confirmed from Bakong Open API portal Network tab). The browser
-// uses the customer's Cambodian ISP IP which CloudFront allows through.
-async function pollBakong() {
-    if (!props.md5) return false;
-    try {
-        const response = await fetch('https://api-bakong.nbc.gov.kh/local/v1/check_transaction_by_md5', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ md5: props.md5 }),
-        });
-        const data = await response.json();
-        console.log('[Bakong poll]', data);
-        // responseCode 0 = success, data !== null = payment found
-        return data?.responseCode === 0 && data?.data != null;
-    } catch (e) {
-        console.warn('[Bakong poll error]', e.message);
-        return false;
-    }
-}
-
-function startPolling() {
-    if (!props.md5 && !props.billNumber) return;
-    polling.value = true;
-    clearInterval(pollInterval);
-
-    pollInterval = setInterval(async () => {
-        if (paid.value || timeLeft.value <= 0) {
-            stopPolling();
-            return;
-        }
-        try {
-            const isPaid = await pollBakong();
-            if (isPaid) {
-                paid.value    = true;
-                polling.value = false;
-                stopPolling();
-                setTimeout(() => emit('paid'), 1800);
-            }
-        } catch (err) {
-            console.warn('[Bakong poll error]', err.message);
-        }
-    }, 3000);
-}
-
 function stopPolling() {
-    clearInterval(pollInterval);
     clearInterval(countdownInterval);
     polling.value = false;
 }
@@ -209,7 +160,6 @@ watch(() => props.billNumber, (val) => {
     stopPolling();
     if (val && props.show) {
         startCountdown();
-        startPolling();
     }
 }, { immediate: true });
 
