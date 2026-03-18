@@ -137,16 +137,13 @@ function startCountdown() {
 }
 
 // ── Transaction polling ───────────────────────────────────
-// Polls Bakong API directly from the browser using the user's Cambodian ISP IP.
-// The live server's cloud datacenter IP is blocked by Bakong's CloudFront WAF,
-// but the user's browser IP (Cambodian ISP) is allowed through.
+// Polls Bakong /local/v1/ endpoint directly from the browser — no Authorization
+// header needed (confirmed from Bakong Open API portal Network tab). The browser
+// uses the customer's Cambodian ISP IP which CloudFront allows through.
 async function pollBakong() {
     if (!props.md5) return false;
     try {
-        // Try passing token as URL query param — bypasses CORS header restriction.
-        // Bakong CORS blocks 'Authorization' header but URL params are not affected by CORS.
-        const url = `https://api-bakong.nbc.gov.kh/v1/check_transaction_by_md5?token=${encodeURIComponent(props.bakongToken)}`;
-        const response = await fetch(url, {
+        const response = await fetch('https://api-bakong.nbc.gov.kh/local/v1/check_transaction_by_md5', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ md5: props.md5 }),
