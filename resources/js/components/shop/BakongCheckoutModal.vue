@@ -128,54 +128,18 @@ function startCountdown() {
 }
 
 // ── Transaction polling ───────────────────────────────────
-// Fetched once then reused for all poll cycles
-let bakongToken   = '';
-let bakongBaseUrl = '';
-
-async function fetchBakongConfig() {
-    const { data } = await window.axios.post('/api/bakong/check-status');
-    bakongToken   = data.token;
-    bakongBaseUrl = data.base_url;
-}
-
 async function pollBakong() {
-    // Try MD5
     try {
-        const res = await fetch(`${bakongBaseUrl}/v1/check_transaction_by_md5`, {
-            method:  'POST',
-            headers: {
-                'Content-Type':  'application/json',
-                'Accept':        'application/json',
-                'Authorization': `Bearer ${bakongToken}`,
-            },
-            body: JSON.stringify({ md5: props.md5 }),
+        const { data } = await window.axios.post('/api/bakong/check-status', {
+            md5:        props.md5,
+            billNumber: props.billNumber,
         });
-        const data = await res.json();
-        console.log('[Bakong MD5]', data);
-        if (data?.data !== null && data?.data !== undefined) return true;
+        console.log('[Bakong poll]', data);
+        return data?.paid === true;
     } catch (e) {
-        console.warn('[Bakong MD5 error]', e.message);
+        console.warn('[Bakong poll error]', e.message);
+        return false;
     }
-
-    // Fallback: instructionRef
-    try {
-        const res = await fetch(`${bakongBaseUrl}/v1/check_transaction_by_instruction_ref`, {
-            method:  'POST',
-            headers: {
-                'Content-Type':  'application/json',
-                'Accept':        'application/json',
-                'Authorization': `Bearer ${bakongToken}`,
-            },
-            body: JSON.stringify({ instructionRef: props.billNumber }),
-        });
-        const data = await res.json();
-        console.log('[Bakong instructionRef]', data);
-        if (data?.data !== null && data?.data !== undefined) return true;
-    } catch (e) {
-        console.warn('[Bakong instructionRef error]', e.message);
-    }
-
-    return false;
 }
 
 function startPolling() {
@@ -183,27 +147,23 @@ function startPolling() {
     polling.value = true;
     clearInterval(pollInterval);
 
-    fetchBakongConfig().then(() => {
-        pollInterval = setInterval(async () => {
-            if (paid.value || timeLeft.value <= 0) {
+    pollInterval = setInterval(async () => {
+        if (paid.value || timeLeft.value <= 0) {
+            stopPolling();
+            return;
+        }
+        try {
+            const isPaid = await pollBakong();
+            if (isPaid) {
+                paid.value    = true;
+                polling.value = false;
                 stopPolling();
-                return;
+                setTimeout(() => emit('paid'), 1800);
             }
-            try {
-                const isPaid = await pollBakong();
-                if (isPaid) {
-                    paid.value    = true;
-                    polling.value = false;
-                    stopPolling();
-                    setTimeout(() => emit('paid'), 1800);
-                }
-            } catch (err) {
-                console.warn('[Bakong poll error]', err.message);
-            }
-        }, 3000);
-    }).catch(err => {
-        console.error('[Bakong config error]', err.message);
-    });
+        } catch (err) {
+            console.warn('[Bakong poll error]', err.message);
+        }
+    }, 3000);
 }
 
 function stopPolling() {

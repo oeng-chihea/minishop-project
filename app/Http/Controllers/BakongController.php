@@ -100,25 +100,50 @@ class BakongController extends Controller
     }
 
     /**
-     * Returns the Bakong API token and base URL so the browser can poll directly.
-     * The live server cannot reach api-bakong.nbc.gov.kh (blocked by CloudFront),
-     * so we let the browser make the Bakong API call instead.
+     * Server-side Bakong transaction poll — proxies the MD5 check to Bakong API.
+     * Uses stream_context (not cURL) to try a different network path.
+     * Called by the Vue frontend every few seconds after checkout.
      */
     public function checkStatus(Request $request)
     {
+        $request->validate([
+            'md5'        => 'nullable|string',
+            'billNumber' => 'nullable|string',
+        ]);
+
         $token  = (string) config('bakong.token');
         $isTest = config('bakong.environment') !== 'production';
+        $base   = $isTest
+            ? 'https://sit-api-bakong.nbc.gov.kh'
+            : 'https://bakong-proxy.liiheaoeng.workers.dev';
 
         if ($token === '') {
             return response()->json(['message' => 'Bakong token is not configured.'], 500);
         }
 
-        return response()->json([
-            'token'    => $token,
-            'base_url' => $isTest
-                ? 'https://sit-api-bakong.nbc.gov.kh'
-                : 'https://bakong-proxy.liiheaoeng.workers.dev',
-        ]);
+        $md5        = (string) ($request->input('md5', ''));
+        $billNumber = (string) ($request->input('billNumber', ''));
+
+        // Try MD5 check
+        if ($md5 !== '') {
+            $result = $this->bakongPost("$base/v1/check_transaction_by_md5", ['md5' => $md5], $token);
+            if ($result !== null) {
+                $paid = isset($result['data']) && $result['data'] !== null;
+                return response()->json(['paid' => $paid, 'raw' => $result]);
+            }
+        }
+
+        // Fallback: instructionRef check
+        if ($billNumber !== '') {
+            $result = $this->bakongPost("$base/v1/check_transaction_by_instruction_ref", ['instructionRef' => $billNumber], $token);
+            if ($result !== null) {
+                $paid = isset($result['data']) && $result['data'] !== null;
+                return response()->json(['paid' => $paid, 'raw' => $result]);
+            }
+        }
+
+        // Both methods failed — server cannot reach Bakong API
+        return response()->json(['paid' => false, 'error' => 'unreachable']);
     }
 
     /**
