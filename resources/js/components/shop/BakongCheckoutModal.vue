@@ -133,13 +133,15 @@ function startCountdown() {
 // The live server's cloud datacenter IP is blocked by Bakong's CloudFront WAF,
 // but the user's browser IP (Cambodian ISP) is allowed through.
 async function pollBakong() {
-    if (!props.md5 || !props.bakongToken) return false;
+    if (!props.md5) return false;
     try {
+        // Call Bakong API directly from browser (Cambodian ISP IP bypasses CloudFront block).
+        // No Authorization header — Bakong CORS policy blocks the 'authorization' header
+        // from cross-origin requests. The public MD5 check endpoint works without auth.
         const response = await fetch('https://api-bakong.nbc.gov.kh/v1/check_transaction_by_md5', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
-                'Authorization': `Bearer ${props.bakongToken}`,
             },
             body: JSON.stringify({ md5: props.md5 }),
         });
