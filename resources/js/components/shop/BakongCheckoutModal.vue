@@ -56,7 +56,6 @@
                                 <polyline points="22 4 12 14.01 9 11.01"/>
                             </svg>
                             <span>Payment Received!</span>
-                            <span v-if="senderAccount" class="bk-sender">From: {{ senderAccount }}</span>
                         </div>
                     </div>
 
@@ -101,10 +100,9 @@ const props = defineProps({
 
 const emit = defineEmits(['close', 'paid', 'retry']);
 
-const paid          = ref(false);
-const polling       = ref(false);
-const timeLeft      = ref(props.lifetime);
-const senderAccount = ref('');
+const paid     = ref(false);
+const polling  = ref(false);
+const timeLeft = ref(props.lifetime);
 
 let pollInterval  = null;
 let countdownInterval = null;
@@ -130,36 +128,82 @@ function startCountdown() {
 }
 
 // ── Transaction polling ───────────────────────────────────
+// Fetched once then reused for all poll cycles
+let bakongToken   = '';
+let bakongBaseUrl = '';
+
+async function fetchBakongConfig() {
+    const { data } = await window.axios.post('/api/bakong/check-status');
+    bakongToken   = data.token;
+    bakongBaseUrl = data.base_url;
+}
+
+async function pollBakong() {
+    // Try MD5
+    try {
+        const res = await fetch(`${bakongBaseUrl}/v1/check_transaction_by_md5`, {
+            method:  'POST',
+            headers: {
+                'Content-Type':  'application/json',
+                'Accept':        'application/json',
+                'Authorization': `Bearer ${bakongToken}`,
+            },
+            body: JSON.stringify({ md5: props.md5 }),
+        });
+        const data = await res.json();
+        console.log('[Bakong MD5]', data);
+        if (data?.data !== null && data?.data !== undefined) return true;
+    } catch (e) {
+        console.warn('[Bakong MD5 error]', e.message);
+    }
+
+    // Fallback: instructionRef
+    try {
+        const res = await fetch(`${bakongBaseUrl}/v1/check_transaction_by_instruction_ref`, {
+            method:  'POST',
+            headers: {
+                'Content-Type':  'application/json',
+                'Accept':        'application/json',
+                'Authorization': `Bearer ${bakongToken}`,
+            },
+            body: JSON.stringify({ instructionRef: props.billNumber }),
+        });
+        const data = await res.json();
+        console.log('[Bakong instructionRef]', data);
+        if (data?.data !== null && data?.data !== undefined) return true;
+    } catch (e) {
+        console.warn('[Bakong instructionRef error]', e.message);
+    }
+
+    return false;
+}
+
 function startPolling() {
     if (!props.md5 && !props.billNumber) return;
     polling.value = true;
     clearInterval(pollInterval);
 
-    pollInterval = setInterval(async () => {
-        if (paid.value || timeLeft.value <= 0) {
-            stopPolling();
-            return;
-        }
-        try {
-            const { data } = await window.axios.post('/api/bakong/check-status', {
-                md5:         props.md5,
-                bill_number: props.billNumber,
-            });
-            console.log('[Bakong poll]', data);
-            if (data?.paid) {
-                senderAccount.value = data.response?.data?.fromAccountId || '';
-                paid.value = true;
-                polling.value = false;
+    fetchBakongConfig().then(() => {
+        pollInterval = setInterval(async () => {
+            if (paid.value || timeLeft.value <= 0) {
                 stopPolling();
-                // Navigate to success page after short delay so user sees the checkmark
-                setTimeout(() => {
-                    emit('paid');
-                }, 1800);
+                return;
             }
-        } catch (err) {
-            console.error('[Bakong poll error]', err?.response?.data || err.message);
-        }
-    }, 3000);
+            try {
+                const isPaid = await pollBakong();
+                if (isPaid) {
+                    paid.value    = true;
+                    polling.value = false;
+                    stopPolling();
+                    setTimeout(() => emit('paid'), 1800);
+                }
+            } catch (err) {
+                console.warn('[Bakong poll error]', err.message);
+            }
+        }, 3000);
+    }).catch(err => {
+        console.error('[Bakong config error]', err.message);
+    });
 }
 
 function stopPolling() {
@@ -173,13 +217,11 @@ watch(() => props.show, (val) => {
     if (!val) {
         stopPolling();
         paid.value = false;
-        senderAccount.value = '';
     }
 });
 
 watch(() => props.billNumber, (val) => {
     paid.value = false;
-    senderAccount.value = '';
     stopPolling();
     if (val && props.show) {
         startCountdown();

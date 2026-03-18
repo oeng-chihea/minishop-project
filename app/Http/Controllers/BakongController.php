@@ -100,20 +100,12 @@ class BakongController extends Controller
     }
 
     /**
-     * Poll transaction status.
-     * Called by Vue frontend via POST /api/bakong/check-status
-     *
-     * Tries MD5 first (works when Bakong indexes the exact QR hash).
-     * Falls back to instructionRef (billNumber) which Bakong records from
-     * the bill number embedded in the Static QR's tag-62 additional data.
+     * Returns the Bakong API token and base URL so the browser can poll directly.
+     * The live server cannot reach api-bakong.nbc.gov.kh (blocked by CloudFront),
+     * so we let the browser make the Bakong API call instead.
      */
     public function checkStatus(Request $request)
     {
-        $request->validate([
-            'md5'         => 'required|string|size:32',
-            'bill_number' => 'required|string|max:25',
-        ]);
-
         $token  = (string) config('bakong.token');
         $isTest = config('bakong.environment') !== 'production';
 
@@ -121,34 +113,12 @@ class BakongController extends Controller
             return response()->json(['message' => 'Bakong token is not configured.'], 500);
         }
 
-        $baseUrl = $isTest
-            ? 'https://sit-api-bakong.nbc.gov.kh'
-            : 'https://api-bakong.nbc.gov.kh';
-
-        // --- Try MD5 ---
-        $response = $this->bakongPost("{$baseUrl}/v1/check_transaction_by_md5", ['md5' => $request->md5], $token);
-
-        if ($response !== null) {
-            $paid = isset($response['data']) && $response['data'] !== null;
-            Log::error('Bakong check-status (md5)', ['md5' => $request->md5, 'paid' => $paid, 'response' => $response]);
-            if ($paid) {
-                return response()->json(['paid' => true, 'response' => $response]);
-            }
-        } else {
-            Log::error('Bakong MD5 check returned null (request failed)', ['md5' => $request->md5]);
-        }
-
-        // --- Fallback: instructionRef (billNumber) ---
-        $response = $this->bakongPost("{$baseUrl}/v1/check_transaction_by_instruction_ref", ['instructionRef' => $request->bill_number], $token);
-
-        if ($response !== null) {
-            $paid = isset($response['data']) && $response['data'] !== null;
-            Log::error('Bakong check-status (instructionRef)', ['bill_number' => $request->bill_number, 'paid' => $paid, 'response' => $response]);
-            return response()->json(['paid' => $paid, 'response' => $response]);
-        }
-
-        Log::error('Bakong all checks failed', ['md5' => $request->md5, 'bill_number' => $request->bill_number]);
-        return response()->json(['paid' => false]);
+        return response()->json([
+            'token'    => $token,
+            'base_url' => $isTest
+                ? 'https://sit-api-bakong.nbc.gov.kh'
+                : 'https://api-bakong.nbc.gov.kh',
+        ]);
     }
 
     /**
