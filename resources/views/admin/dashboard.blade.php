@@ -810,10 +810,8 @@
             }
         }
 
-        function renderOrders(orders) {
-            const tbody = document.querySelector('tbody');
-            if (!tbody) return;
-            tbody.innerHTML = orders.map(o => `
+        function buildRowHtml(o) {
+            return `
                 <tr id="row-${o.id}">
                     <td style="padding-left:16px">
                         <button class="expand-btn" onclick="toggleRow(${o.id},this)" title="Show items">
@@ -856,17 +854,41 @@
                             </div>
                         </div>
                     </td>
-                </tr>
-            `).join('');
+                </tr>`;
+        }
+
+        function renderOrders(orders) {
+            const tbody = document.querySelector('tbody');
+            if (!tbody) return;
+
+            const newIds = new Set(orders.map(o => String(o.id)));
+
+            orders.forEach(o => {
+                const existingRow = document.getElementById('row-' + o.id);
+                if (existingRow) {
+                    // Update only status and action buttons — never touch detail-inner
+                    const cells = existingRow.querySelectorAll('td');
+                    if (cells[2]) cells[2].innerHTML = statusBadge(o.status);
+                    const actionRow = existingRow.querySelector('.action-row');
+                    if (actionRow) actionRow.innerHTML = actionButtons(o);
+                } else {
+                    // New order — prepend so newest shows first
+                    tbody.insertAdjacentHTML('afterbegin', buildRowHtml(o));
+                }
+            });
+
+            // Remove rows that are no longer in the current result set
+            tbody.querySelectorAll('tr[id^="row-"]').forEach(row => {
+                const id = row.id.replace('row-', '');
+                if (!newIds.has(id)) {
+                    const detail = document.getElementById('detail-' + id);
+                    if (detail) detail.remove();
+                    row.remove();
+                }
+            });
         }
 
         function syncData() {
-            // Save which rows are currently expanded before re-rendering
-            const openRows = new Set();
-            document.querySelectorAll('.detail-inner.open').forEach(el => {
-                openRows.add(el.id.replace('detail-inner-', ''));
-            });
-
             const params = new URLSearchParams(window.location.search);
             fetch(`/admin/data?${params.toString()}`)
                 .then(r => r.json())
@@ -882,16 +904,8 @@
                     const badge = document.querySelector('.order-count');
                     if (badge) badge.textContent = data.orders.length + ' shown';
 
-                    // Update orders table
+                    // Update orders table in-place (expanded rows are never collapsed)
                     renderOrders(data.orders);
-
-                    // Restore previously expanded rows
-                    openRows.forEach(id => {
-                        const inner = document.getElementById('detail-inner-' + id);
-                        const btn = document.querySelector('#row-' + id + ' .expand-btn');
-                        if (inner) inner.classList.add('open');
-                        if (btn) btn.classList.add('open');
-                    });
 
                     // Update timestamp
                     const now = new Date();
