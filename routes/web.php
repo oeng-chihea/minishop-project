@@ -1,8 +1,7 @@
 <?php
 
+use App\Http\Controllers\AdminController;
 use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\PaymentController;
-
 /*
 |--------------------------------------------------------------------------
 | Web Routes
@@ -18,6 +17,16 @@ Route::get('/', function () {
     return view('shop');
 });
 
-// ABA PayWay browser-redirect callbacks
-Route::get('/payment/result', [PaymentController::class, 'result'])->name('payment.result');
-Route::get('/payment/cancel', [PaymentController::class, 'cancel'])->name('payment.cancel');
+// ── Admin routes (defined before catch-all so they are matched first) ──
+Route::prefix('admin')->group(function () {
+    Route::get('/',       [AdminController::class, 'index'])->name('admin.index');
+    Route::get('/login',  [AdminController::class, 'loginForm'])->name('admin.login');
+    Route::post('/login', [AdminController::class, 'login'])->name('admin.login.post');
+    Route::post('/logout',[AdminController::class, 'logout'])->name('admin.logout');
+    Route::post('/orders/{id}/status', [AdminController::class, 'updateStatus'])->name('admin.orders.status');
+});
+
+// SPA fallback — serves the Vue app for any unknown path (must be last)
+Route::get('/{any}', function () {
+    return view('shop');
+})->where('any', '^(?!admin).*$');

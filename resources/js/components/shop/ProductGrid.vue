@@ -186,7 +186,8 @@ onMounted(() => {
         ([entry]) => {
             if (entry.isIntersecting) {
                 gridVisible.value = true;
-                gridObserver.disconnect();
+            } else {
+                gridVisible.value = false;
             }
         },
         { threshold: 0.08 }
@@ -328,16 +329,15 @@ onBeforeUnmount(() => {
     background: #111827;
     border: 1px solid rgba(255,255,255,0.06);
     overflow: hidden;
-    opacity: 0;
-    animation: blurFadeIn 0.7s cubic-bezier(0.22, 1, 0.36, 1) var(--delay, 0s) forwards;
-    animation-play-state: paused;
+    opacity: 0;   /* hidden by default; animation lives only in .grid-in */
     transition: transform 0.35s cubic-bezier(0.22, 1, 0.36, 1),
                 box-shadow 0.35s ease,
                 border-color 0.35s ease;
 }
 
+/* Animation fires fresh each time .grid-in is (re-)applied */
 .grid-in .product-card {
-    animation-play-state: running;
+    animation: blurFadeIn 0.7s cubic-bezier(0.22, 1, 0.36, 1) var(--delay, 0s) forwards;
 }
 
 .product-card:hover {

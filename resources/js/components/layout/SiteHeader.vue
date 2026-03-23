@@ -12,6 +12,7 @@
                 <a href="#" class="brand" aria-label="minishopkh home">
                     <span class="brand-text">{{ displayText }}</span><span class="brand-cursor">|</span>
                 </a>
+
             </div>
         </div>
     </header>

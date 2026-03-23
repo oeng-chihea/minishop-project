@@ -61,7 +61,8 @@ onMounted(() => {
         ([entry]) => {
             if (entry.isIntersecting) {
                 isVisible.value = true;
-                observer.disconnect();
+            } else {
+                isVisible.value = false;
             }
         },
         { threshold: 0.1 }

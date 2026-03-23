@@ -64,18 +64,21 @@ return [
         ],
 
         'pgsql' => [
-            'driver' => 'pgsql',
-            'url' => env('DATABASE_URL'),
-            'host' => env('DB_HOST', '127.0.0.1'),
-            'port' => env('DB_PORT', '5432'),
-            'database' => env('DB_DATABASE', 'forge'),
-            'username' => env('DB_USERNAME', 'forge'),
-            'password' => env('DB_PASSWORD', ''),
-            'charset' => 'utf8',
-            'prefix' => '',
-            'prefix_indexes' => true,
-            'schema' => 'public',
-            'sslmode' => 'prefer',
+            'driver'           => 'pgsql',
+            'url'              => env('DATABASE_URL'),
+            'host'             => env('DB_HOST', '127.0.0.1'),
+            'port'             => env('DB_PORT', '5432'),
+            'database'         => env('DB_DATABASE', 'forge'),
+            'username'         => env('DB_USERNAME', 'forge'),
+            'password'         => env('DB_PASSWORD', ''),
+            'charset'          => 'utf8',
+            'prefix'           => '',
+            'prefix_indexes'   => true,
+            'schema'           => 'public',
+            'sslmode'          => 'prefer',
+            // Neon endpoint ID — injected into DSN by NeonPostgresConnector so that
+            // old libpq clients (no SNI) can still connect. Safe to set on all envs.
+            'neon_endpoint_id' => env('NEON_ENDPOINT_ID'),
         ],
 
         'sqlsrv' => [

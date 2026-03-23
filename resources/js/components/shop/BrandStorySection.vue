@@ -1,46 +1,64 @@
 <template>
-    <section class="brand-story" ref="sectionRef" id="about">
-        <div class="container brand-story-inner" :class="{ 'is-visible': isVisible }">
-            <div class="story-image-col">
-                <div class="image-frame">
-                    <img
-                        src="https://images.unsplash.com/photo-1441984904996-e0b6ba687e04?auto=format&fit=crop&w=800&q=80"
-                        alt="Our store"
-                    />
-                    <div class="image-badge">
-                        <span class="badge-number">5+</span>
-                        <span class="badge-label">Years of Craft</span>
-                    </div>
-                </div>
-            </div>
+    <section class="bs-root" ref="rootRef">
+        <!-- decorative large background lettering -->
+        <span class="bs-deco" aria-hidden="true">KH</span>
 
-            <div class="story-text-col">
-                <span class="kicker">Our Story</span>
-                <h2>Born from a love of quality and simplicity</h2>
-                <p class="lead">
-                    minishopkh started with a single idea — everyday products should be beautifully
-                    made, thoughtfully designed, and accessible to everyone.
-                </p>
-                <p>
-                    We obsessively curate items that stand the test of time, from street-ready
-                    essentials to travel companions and active gear. Every product earns its place
-                    in our collection through quality, design, and real-world usefulness.
-                </p>
-                <div class="story-stats">
-                    <div class="stat">
-                        <strong>9+</strong>
-                        <span>Products curated</span>
-                    </div>
-                    <div class="stat">
-                        <strong>3</strong>
-                        <span>Collections</span>
-                    </div>
-                    <div class="stat">
-                        <strong>100%</strong>
-                        <span>Satisfaction</span>
+        <div class="bs-wrap">
+            <div class="bs-layout">
+
+                <!-- ── Left: large statement text ── -->
+                <div class="bs-left" :class="{ visible: inView }">
+                    <span class="bs-eyebrow">OUR STORY</span>
+
+                    <!--
+                        Unique animation: LINE MASK RISE
+                        Each line's parent has overflow:hidden, so the
+                        inner span is invisible at translateY(108%).
+                        On .visible it rises to translateY(0) — text
+                        emerges from below its container boundary.
+                        Completely different from the 16px fadeInUp used
+                        everywhere else in this project.
+                    -->
+                    <h2 class="bs-headline">
+                        <span
+                            v-for="(line, li) in headlineLines"
+                            :key="li"
+                            class="bs-line"
+                            :style="`--li: ${li}`"
+                        >
+                            <span class="bs-line-inner">{{ line }}</span>
+                        </span>
+                    </h2>
+
+                    <p class="bs-body">
+                        We believe the right pair of shoes changes how you move through
+                        the world. Built for comfort, designed for life — every stitch
+                        placed with intention.
+                    </p>
+
+                    <div class="bs-rule" :class="{ visible: inView }"></div>
+                </div>
+
+                <!-- ── Right: numbered story items ── -->
+                <div class="bs-right">
+                    <div
+                        v-for="(item, ii) in items"
+                        :key="ii"
+                        class="bs-item"
+                        :class="{ visible: inView }"
+                        :style="`--ii: ${ii}`"
+                    >
+                        <div class="bs-num-wrap">
+                            <span class="bs-num">{{ String(ii + 1).padStart(2, '0') }}</span>
+                            <span class="bs-num-line"></span>
+                        </div>
+                        <div class="bs-item-body">
+                            <h4 class="bs-item-title">{{ item.title }}</h4>
+                            <p class="bs-item-desc">{{ item.desc }}</p>
+                        </div>
                     </div>
                 </div>
-                <a href="#shop" class="story-cta">Explore the Collection</a>
+
             </div>
         </div>
     </section>
@@ -49,233 +67,243 @@
 <script setup>
 import { ref, onMounted, onBeforeUnmount } from 'vue';
 
-const sectionRef = ref(null);
-const isVisible = ref(false);
-let observer;
+const rootRef = ref(null);
+const inView  = ref(false);
+
+const headlineLines = ['Made for', 'Your Pace.'];
+
+const items = [
+    {
+        title: 'Born in Cambodia',
+        desc:  'Rooted in local craft and community, with a vision that reaches far beyond borders.',
+    },
+    {
+        title: 'Shaped by You',
+        desc:  'Every design decision guided by real feedback from the people who wear them daily.',
+    },
+    {
+        title: 'Made to Move',
+        desc:  'Each sole is built for the life you actually live — not the one on paper.',
+    },
+];
+
+let observer = null;
 
 onMounted(() => {
     observer = new IntersectionObserver(
         ([entry]) => {
             if (entry.isIntersecting) {
-                isVisible.value = true;
-                observer.disconnect();
+                inView.value = true;
+            } else {
+                inView.value = false;
             }
         },
-        { threshold: 0.12 }
+        { threshold: 0.22 }
     );
-    if (sectionRef.value) observer.observe(sectionRef.value);
+    if (rootRef.value) observer.observe(rootRef.value);
 });
 
 onBeforeUnmount(() => observer?.disconnect());
 </script>
 
 <style scoped>
-.brand-story {
-    padding: 80px 0;
+/* ── Root ────────────────────────────────────────── */
+.bs-root {
+    background: #0a0f1a;
+    padding: 104px 0 112px;
+    position: relative;
     overflow: hidden;
 }
 
-.container {
-    max-width: 1240px;
-    margin: 0 auto;
-    padding: 0 22px;
+/* large decorative background letters */
+.bs-deco {
+    position: absolute;
+    right: -1%;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: clamp(140px, 22vw, 320px);
+    font-weight: 800;
+    letter-spacing: -0.05em;
+    color: transparent;
+    -webkit-text-stroke: 1px rgba(255, 255, 255, 0.035);
+    line-height: 1;
+    pointer-events: none;
+    user-select: none;
 }
 
-.brand-story-inner {
+.bs-wrap {
+    max-width: 1240px;
+    margin: 0 auto;
+    padding: 0 24px;
+    position: relative;
+}
+
+/* ── Two-column layout ───────────────────────────── */
+.bs-layout {
     display: grid;
     grid-template-columns: 1fr 1fr;
-    gap: 72px;
+    gap: 80px;
     align-items: center;
 }
 
-/* Scroll animation */
-.brand-story-inner {
+/* ── Left column ─────────────────────────────────── */
+.bs-eyebrow {
+    display: block;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.22em;
+    color: rgba(255, 255, 255, 0.32);
+    margin-bottom: 24px;
+    text-transform: uppercase;
     opacity: 0;
-    transform: translateY(32px);
-    transition: opacity 0.8s ease, transform 0.8s ease;
+    transition: opacity 0.5s ease 0.05s;
 }
 
-.brand-story-inner.is-visible {
+.bs-left.visible .bs-eyebrow {
     opacity: 1;
+}
+
+/* Headline with overflow-hidden lines */
+.bs-headline {
+    font-size: clamp(52px, 6.5vw, 90px);
+    font-weight: 800;
+    color: #fff;
+    letter-spacing: -0.04em;
+    line-height: 0.95;
+    margin: 0 0 30px;
+}
+
+.bs-line {
+    display: block;
+    overflow: hidden;
+    padding-bottom: 0.07em; /* prevents descender clipping */
+}
+
+.bs-line-inner {
+    display: block;
+    transform: translateY(108%);
+    transition: transform 1s cubic-bezier(0.16, 1, 0.3, 1);
+    transition-delay: calc(var(--li) * 0.17s + 0.08s);
+}
+
+.bs-left.visible .bs-line-inner {
     transform: translateY(0);
 }
 
-.story-image-col {
-    transition-delay: 0s;
+.bs-body {
+    font-size: 15px;
+    color: rgba(255, 255, 255, 0.43);
+    line-height: 1.8;
+    margin: 0 0 32px;
+    max-width: 420px;
+    opacity: 0;
+    transition: opacity 0.7s ease 0.56s;
 }
 
-.story-text-col {
-    transition-delay: 0.15s;
+.bs-left.visible .bs-body {
+    opacity: 1;
 }
 
-/* Image */
-.image-frame {
-    position: relative;
+/* animated rule — width expands from 0 */
+.bs-rule {
+    width: 0;
+    height: 2px;
+    background: linear-gradient(90deg, #3b82f6, #a78bfa);
     border-radius: 2px;
-    overflow: hidden;
-    box-shadow: var(--shadow-hero);
+    transition: width 1s cubic-bezier(0.22, 1, 0.36, 1) 0.62s;
+}
+.bs-rule.visible {
+    width: 56px;
 }
 
-.image-frame img {
-    width: 100%;
-    height: 480px;
-    object-fit: cover;
-    display: block;
-    transition: transform 0.7s ease;
-}
-
-.image-frame:hover img {
-    transform: scale(1.04);
-}
-
-.image-badge {
-    position: absolute;
-    bottom: 20px;
-    right: 20px;
-    background: var(--color-primary);
-    color: #fff;
-    padding: 14px 18px;
-    text-align: center;
-    box-shadow: 0 8px 24px rgba(0,0,0,0.22);
-}
-
-.badge-number {
-    display: block;
-    font-size: 28px;
-    font-weight: 800;
-    line-height: 1;
-    letter-spacing: -0.02em;
-}
-
-.badge-label {
-    display: block;
-    font-size: 10px;
-    font-weight: 700;
-    letter-spacing: 0.1em;
-    text-transform: uppercase;
-    opacity: 0.85;
-    margin-top: 4px;
-}
-
-/* Text */
-.kicker {
-    display: inline-block;
-    font-size: 11px;
-    font-weight: 700;
-    letter-spacing: 0.14em;
-    text-transform: uppercase;
-    color: var(--color-accent);
-    margin-bottom: 14px;
-}
-
-h2 {
-    margin: 0 0 20px;
-    font-size: 42px;
-    font-weight: 800;
-    line-height: 1.08;
-    letter-spacing: -0.03em;
-    color: var(--color-text);
-}
-
-.lead {
-    font-size: 18px;
-    color: var(--color-text);
-    line-height: 1.55;
-    margin: 0 0 16px;
-    font-weight: 500;
-}
-
-p {
-    color: var(--color-muted);
-    line-height: 1.65;
-    margin: 0 0 28px;
-}
-
-/* Stats */
-.story-stats {
+/* ── Right column: numbered items ────────────────── */
+.bs-right {
     display: flex;
-    gap: 40px;
-    margin-bottom: 32px;
-    padding: 24px 0;
-    border-top: 1px solid var(--color-line);
-    border-bottom: 1px solid var(--color-line);
+    flex-direction: column;
 }
 
-.stat strong {
-    display: block;
-    font-size: 32px;
+.bs-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 20px;
+    padding: 28px 0;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.07);
+    opacity: 0;
+    transform: translateX(44px);
+    transition:
+        opacity  0.65s ease,
+        transform 0.65s cubic-bezier(0.22, 1, 0.36, 1);
+    transition-delay: calc(var(--ii) * 0.14s + 0.32s);
+}
+
+.bs-item:first-child {
+    border-top: 1px solid rgba(255, 255, 255, 0.07);
+    padding-top: 28px;
+}
+
+.bs-item.visible {
+    opacity: 1;
+    transform: translateX(0);
+}
+
+/* number badge */
+.bs-num-wrap {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+    flex-shrink: 0;
+    padding-top: 2px;
+}
+
+.bs-num {
+    font-size: 10.5px;
     font-weight: 800;
-    letter-spacing: -0.03em;
-    color: var(--color-primary);
+    color: rgba(255, 255, 255, 0.2);
+    letter-spacing: 0.06em;
+    font-variant-numeric: tabular-nums;
     line-height: 1;
 }
 
-.stat span {
+.bs-num-line {
     display: block;
-    font-size: 12px;
-    color: var(--color-muted);
-    font-weight: 600;
-    letter-spacing: 0.04em;
-    text-transform: uppercase;
-    margin-top: 4px;
+    width: 1px;
+    height: 24px;
+    background: rgba(255, 255, 255, 0.1);
 }
 
-/* CTA */
-.story-cta {
-    display: inline-flex;
-    align-items: center;
-    gap: 8px;
-    background: var(--color-text);
-    color: #fff;
-    text-decoration: none;
-    font-size: 13px;
+.bs-item-body {
+    flex: 1;
+}
+
+.bs-item-title {
+    font-size: 15px;
     font-weight: 700;
-    text-transform: uppercase;
-    letter-spacing: 0.08em;
-    padding: 14px 28px;
-    border-radius: 2px;
-    transition: background 0.25s ease, transform 0.25s ease;
+    color: #fff;
+    margin: 0 0 6px;
+    letter-spacing: -0.01em;
 }
 
-.story-cta:hover {
-    background: var(--color-primary);
-    transform: translateY(-2px);
+.bs-item-desc {
+    font-size: 13px;
+    color: rgba(255, 255, 255, 0.42);
+    line-height: 1.7;
+    margin: 0;
 }
 
-@media (max-width: 900px) {
-    .brand-story-inner {
+/* ── Responsive ──────────────────────────────────── */
+@media (max-width: 860px) {
+    .bs-layout {
         grid-template-columns: 1fr;
-        gap: 40px;
+        gap: 52px;
     }
 
-    h2 {
-        font-size: 32px;
-    }
-
-    .image-frame img {
-        height: 320px;
-    }
-
-    .story-stats {
-        gap: 24px;
-    }
+    .bs-deco { display: none; }
 }
 
-@media (max-width: 640px) {
-    .brand-story {
-        padding: 52px 0;
-    }
-
-    h2 {
-        font-size: 26px;
-    }
-
-    .story-stats {
-        gap: 16px;
-    }
-
-    .stat strong {
-        font-size: 24px;
-    }
+@media (max-width: 540px) {
+    .bs-root    { padding: 72px 0 80px; }
+    .bs-item    { gap: 14px; padding: 22px 0; }
+    .bs-headline { font-size: clamp(44px, 10vw, 60px); }
 }
 </style>

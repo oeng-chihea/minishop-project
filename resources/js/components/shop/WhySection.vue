@@ -107,6 +107,7 @@ onMounted(() => {
                 paused = false;
                 startCycle();
             } else {
+                visible.value = false;
                 paused = true;
                 stopCycle();
             }

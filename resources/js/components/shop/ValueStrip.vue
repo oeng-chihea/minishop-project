@@ -1,9 +1,9 @@
 <template>
-    <section class="strip-wrap">
+    <section class="strip-wrap" ref="sectionRef">
         <div class="strip-inner">
 
             <!-- Header -->
-            <div class="strip-header" :class="{ 'header-in': sectionVisible }" ref="labelRef">
+            <div class="strip-header" :class="{ 'header-in': sectionVisible }">
                 <span class="strip-eyebrow">Why shop with us</span>
                 <h3 class="strip-heading">Built around your experience</h3>
             </div>
@@ -16,7 +16,6 @@
                     :key="item.title"
                     :class="{ 'card-entered': enteredCards[i] }"
                     :style="{ '--delay': i * 0.12 + 's' }"
-                    :ref="el => cardRefs[i] = el"
                 >
                     <article class="value-card">
                         <div class="card-content">
@@ -58,37 +57,45 @@ const values = [
     }
 ];
 
-const cardRefs       = ref([]);
-const labelRef       = ref(null);
+const sectionRef     = ref(null);
 const enteredCards   = ref(values.map(() => false));
 const sectionVisible = ref(false);
 
-let observer = null;
+let observer  = null;
+let staggerIds = [];
+
+function triggerCards() {
+    staggerIds.forEach(clearTimeout);
+    staggerIds = [];
+    enteredCards.value = values.map(() => false);
+    values.forEach((_, i) => {
+        staggerIds.push(
+            setTimeout(() => { enteredCards.value[i] = true; }, i * 130)
+        );
+    });
+}
 
 onMounted(() => {
     observer = new IntersectionObserver(
-        (entries) => {
-            entries.forEach((entry) => {
-                if (!entry.isIntersecting) return;
-                if (entry.target === labelRef.value) {
-                    sectionVisible.value = true;
-                    observer.unobserve(entry.target);
-                    return;
-                }
-                const i = cardRefs.value.indexOf(entry.target);
-                if (i !== -1) {
-                    enteredCards.value[i] = true;
-                    observer.unobserve(entry.target);
-                }
-            });
+        ([entry]) => {
+            if (entry.isIntersecting) {
+                sectionVisible.value = true;
+                triggerCards();
+            } else {
+                sectionVisible.value = false;
+                staggerIds.forEach(clearTimeout);
+                enteredCards.value = values.map(() => false);
+            }
         },
-        { threshold: 0.1 }
+        { threshold: 0.15 }
     );
-    if (labelRef.value) observer.observe(labelRef.value);
-    cardRefs.value.forEach((el) => { if (el) observer.observe(el); });
+    if (sectionRef.value) observer.observe(sectionRef.value);
 });
 
-onBeforeUnmount(() => { if (observer) observer.disconnect(); });
+onBeforeUnmount(() => {
+    observer?.disconnect();
+    staggerIds.forEach(clearTimeout);
+});
 </script>
 
 <style scoped>

@@ -70,7 +70,13 @@ const quotes = [
     { text: 'My go-to for everyday wear',     from: 'Sokha T.' },
 ];
 
+let countIntervals = [];
+
 function countUp() {
+    countIntervals.forEach(clearInterval);
+    countIntervals = [];
+    stats.forEach(s => { s.displayed = 0; });
+
     const DURATION = 1600;
     const STEPS    = 60;
     stats.forEach(s => {
@@ -81,6 +87,7 @@ function countUp() {
             s.displayed = step < STEPS ? Math.round(inc * step) : s.target;
             if (step >= STEPS) clearInterval(t);
         }, DURATION / STEPS);
+        countIntervals.push(t);
     });
 }
 
@@ -91,14 +98,21 @@ onMounted(() => {
             if (entry.isIntersecting) {
                 isVisible.value = true;
                 countUp();
-                observer.disconnect();
+            } else {
+                isVisible.value = false;
+                countIntervals.forEach(clearInterval);
+                countIntervals = [];
+                stats.forEach(s => { s.displayed = 0; });
             }
         },
         { threshold: 0.15 }
     );
     if (sectionRef.value) observer.observe(sectionRef.value);
 });
-onBeforeUnmount(() => observer?.disconnect());
+onBeforeUnmount(() => {
+    observer?.disconnect();
+    countIntervals.forEach(clearInterval);
+});
 </script>
 
 <style scoped>

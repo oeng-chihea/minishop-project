@@ -4,13 +4,17 @@
         <HeroSection />
         <TrendingBanner />
         <CollectionsSection id="collections" />
+        <MaterialsSection />
         <ValueStrip id="values" />
 
         <ProductGrid :products="products" @add="addToCart" />
 
+        <BrandStorySection />
+
         <WhySection id="why-us" />
 
         <TestimonialsSection />
+        <LookbookSection />
         <FAQSection />
 
         <CartPanel
@@ -44,6 +48,12 @@
             @retry="checkoutWithBakong"
         />
 
+        <OrderConfirmationModal
+            :show="showOrderConfirmation"
+            :order="confirmedOrder"
+            @close="closeOrderConfirmation"
+        />
+
         <button type="button" class="cart-toggle" :class="{ 'is-open': isCartOpen }" aria-label="Toggle cart" @click="isCartOpen = !isCartOpen">
             <!-- Bag icon -->
             <svg v-if="!isCartOpen" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -73,6 +83,10 @@ import ValueStrip from './shop/ValueStrip.vue';
 import ProductGrid from './shop/ProductGrid.vue';
 import CartPanel from './shop/CartPanel.vue';
 import BakongCheckoutModal from './shop/BakongCheckoutModal.vue';
+import OrderConfirmationModal from './shop/OrderConfirmationModal.vue';
+import MaterialsSection from './shop/MaterialsSection.vue';
+import BrandStorySection from './shop/BrandStorySection.vue';
+import LookbookSection from './shop/LookbookSection.vue';
 import TestimonialsSection from './shop/TestimonialsSection.vue';
 import FAQSection from './shop/FAQSection.vue';
 import NewsletterSection from './shop/NewsletterSection.vue';
@@ -215,16 +229,26 @@ const clearCart = () => {
     cart.value = [];
 };
 
+// ── Order confirmation ────────────────────────────────────
+const confirmedOrder        = ref(null);
+const showOrderConfirmation = ref(false);
+
+const closeOrderConfirmation = () => {
+    showOrderConfirmation.value = false;
+    confirmedOrder.value = null;
+};
+
 // ── Bakong KHQR checkout ──────────────────────────────────
 const bakongModal = reactive({
-    show:       false,
-    loading:    false,
-    error:      '',
-    qrImage:    '',
-    billNumber: '',
-    md5:        '',
-    amount:     0,
-    token:      '',
+    show:        false,
+    loading:     false,
+    error:       '',
+    qrImage:     '',
+    billNumber:  '',
+    md5:         '',
+    amount:      0,
+    token:       '',
+    orderNumber: '',
 });
 
 const checkoutWithBakong = async () => {
@@ -245,19 +269,22 @@ const checkoutWithBakong = async () => {
 
     try {
         const items = cart.value.map((item) => ({
+            id:    item.id,
             name:  item.name,
             qty:   item.qty,
             price: item.price,
+            image: item.image,
         }));
 
         const { data } = await window.axios.post('/api/bakong/checkout', { items });
 
-        bakongModal.loading    = false;
-        bakongModal.qrImage    = data.qr_image     || '';
-        bakongModal.billNumber = data.bill_number   || '';
-        bakongModal.md5        = data.md5           || '';
-        bakongModal.amount     = data.amount        || 0;
-        bakongModal.token      = data.bakong_token  || '';
+        bakongModal.loading     = false;
+        bakongModal.qrImage     = data.qr_image     || '';
+        bakongModal.billNumber  = data.bill_number   || '';
+        bakongModal.md5         = data.md5           || '';
+        bakongModal.amount      = data.amount        || 0;
+        bakongModal.token       = data.bakong_token  || '';
+        bakongModal.orderNumber = data.order_number  || '';
 
         // Close the cart panel once QR is ready
         isCartOpen.value = false;
@@ -272,19 +299,39 @@ const checkoutWithBakong = async () => {
 };
 
 const closeBakongModal = () => {
-    bakongModal.show       = false;
-    bakongModal.loading    = false;
-    bakongModal.error      = '';
-    bakongModal.qrImage    = '';
-    bakongModal.billNumber = '';
-    bakongModal.md5        = '';
-    bakongModal.token      = '';
+    bakongModal.show        = false;
+    bakongModal.loading     = false;
+    bakongModal.error       = '';
+    bakongModal.qrImage     = '';
+    bakongModal.billNumber  = '';
+    bakongModal.md5         = '';
+    bakongModal.token       = '';
+    bakongModal.orderNumber = '';
 };
 
 const onBakongPaid = () => {
-    bakongModal.show = false;
+    const orderNumber = bakongModal.orderNumber; // capture before modal clears it
+
+    confirmedOrder.value = {
+        order_number: orderNumber || null,
+        total_amount: bakongModal.amount,
+        currency:     'USD',
+        items: cart.value.map((i) => ({
+            product_name:  i.name,
+            quantity:      i.qty,
+            unit_price:    i.price,
+            subtotal:      i.qty * i.price,
+            product_image: i.image,
+        })),
+    };
+    showOrderConfirmation.value = true;
     clearCart();
-    window.location.href = '/payment/result?status=0';
+    closeBakongModal();
+
+    // Silently update order status to paid in the background (for admin tracking)
+    if (orderNumber) {
+        window.axios.post(`/api/bakong/confirm/${orderNumber}`).catch(() => {});
+    }
 };
 
 const totalItems = computed(() =>

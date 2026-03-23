@@ -1,5 +1,5 @@
 <template>
-    <section class="hero-wrap">
+    <section class="hero-wrap" ref="heroWrap" :class="{ 'hero-in': heroIn }">
         <div class="hero-banner">
             <aside class="menu-card">
                 <h4>Featured</h4>
@@ -20,6 +20,24 @@
     </section>
 </template>
 
+<script setup>
+import { ref, onMounted, onBeforeUnmount } from 'vue';
+
+const heroWrap = ref(null);
+const heroIn   = ref(false);
+let observer   = null;
+
+onMounted(() => {
+    observer = new IntersectionObserver(
+        ([entry]) => { heroIn.value = entry.isIntersecting; },
+        { threshold: 0.1 }
+    );
+    if (heroWrap.value) observer.observe(heroWrap.value);
+});
+
+onBeforeUnmount(() => observer?.disconnect());
+</script>
+
 <style scoped>
 .hero-wrap {
     width: 100%;
@@ -39,7 +57,11 @@
     background-size: cover;
     background-position: center;
     background-attachment: fixed;
-    animation: curtainReveal 1.3s cubic-bezier(0.77, 0, 0.175, 1) both;
+    /* start collapsed — animation fires when .hero-in is added */
+    clip-path: polygon(0 0, 100% 0, 100% 0, 0 0);
+}
+.hero-wrap.hero-in .hero-banner {
+    animation: curtainReveal 1.3s cubic-bezier(0.77, 0, 0.175, 1) forwards;
 }
 
 .menu-card {
@@ -50,7 +72,10 @@
     padding: 28px 28px 24px;
     width: 220px;
     box-shadow: var(--shadow-card);
-    animation: fadeUp 0.7s ease 1.0s both;
+    opacity: 0;
+}
+.hero-wrap.hero-in .menu-card {
+    animation: fadeUp 0.7s ease 1.0s forwards;
 }
 
 .menu-card h4 {
@@ -84,7 +109,10 @@
     max-width: 520px;
     color: #fff;
     text-align: left;
-    animation: fadeUp 0.9s ease 1.25s both;
+    opacity: 0;
+}
+.hero-wrap.hero-in .hero-content {
+    animation: fadeUp 0.9s ease 1.25s forwards;
 }
 
 .hero-content h1 {

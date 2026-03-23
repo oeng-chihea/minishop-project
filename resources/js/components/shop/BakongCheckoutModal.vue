@@ -139,12 +139,14 @@ function stopPolling() {
     polling.value = false;
 }
 
-// Manual confirmation — customer taps "I've Paid" after scanning
+// Manual confirmation — customer taps "I've Paid" after scanning.
+// Brief 600ms delay so the "Payment Received!" overlay is visible,
+// then emit paid immediately — parent shows confirmation modal right away.
 function confirmManually() {
     paid.value    = true;
     polling.value = false;
     stopPolling();
-    setTimeout(() => emit('paid'), 1800);
+    setTimeout(() => emit('paid'), 600);
 }
 
 // ── Watchers ──────────────────────────────────────────────

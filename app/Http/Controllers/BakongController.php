@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Order;
 use chillerlan\QRCode\QRCode;
 use chillerlan\QRCode\QROptions;
 use Illuminate\Http\Request;
@@ -75,14 +76,49 @@ class BakongController extends Controller
 
             $qrImage = $this->renderQrImage($qrString);
 
-            Log::info('Bakong KHQR generated', [
-                'qr_string'   => $qrString,
-                'md5'         => $md5,
-                'amount'      => $amount,
-                'currency'    => $currencyStr,
-                'account_id'  => $accountId,
-                'bill_number' => $billNumber,
-            ]);
+            // Persist order as PENDING — DB errors are non-fatal so QR always renders.
+            $orderNumber = null;
+            try {
+                $order = Order::create([
+                    'order_number' => Order::generateOrderNumber(),
+                    'bill_number'  => $billNumber,
+                    'md5'          => $md5,
+                    'status'       => 'pending',
+                    'total_amount' => $amount,
+                    'currency'     => $currencyStr,
+                ]);
+
+                foreach ($request->items as $item) {
+                    $qty   = (int)   $item['qty'];
+                    $price = (float) $item['price'];
+                    $order->items()->create([
+                        'product_id'    => (int) ($item['id'] ?? 0),
+                        'product_name'  => $item['name'],
+                        'unit_price'    => $price,
+                        'quantity'      => $qty,
+                        'subtotal'      => round($price * $qty, 2),
+                        'product_image' => $item['image'] ?? null,
+                    ]);
+                }
+
+                $orderNumber = $order->order_number;
+
+                Log::info('Bakong KHQR generated', [
+                    'order_number' => $orderNumber,
+                    'md5'          => $md5,
+                    'amount'       => $amount,
+                    'currency'     => $currencyStr,
+                    'bill_number'  => $billNumber,
+                ]);
+            } catch (\Throwable $dbErr) {
+                // DB unavailable — log and continue; QR is still valid.
+                Log::warning('Bakong order DB save failed (non-fatal)', [
+                    'bill_number' => $billNumber,
+                    'error'       => $dbErr->getMessage(),
+                ]);
+                // Fallback: generate display-only order number
+                $orderNumber = 'ORD-' . now()->format('Ymd') . '-' . strtoupper(substr(bin2hex(random_bytes(4)), 0, 5));
+            }
 
             return response()->json([
                 'qr_string'    => $qrString,
@@ -91,6 +127,7 @@ class BakongController extends Controller
                 'amount'       => $amount,
                 'currency'     => $currencyStr,
                 'bill_number'  => $billNumber,
+                'order_number' => $orderNumber,
                 'bakong_token' => config('bakong.token'), // browser polls Bakong directly
             ]);
 
@@ -192,6 +229,29 @@ class BakongController extends Controller
 
         $decoded = json_decode($body, true);
         return is_array($decoded) ? $decoded : null;
+    }
+
+    /**
+     * Mark an order as paid — called silently by the frontend after customer confirms.
+     * Non-fatal: if DB is unavailable the response is still 200.
+     */
+    public function confirmOrder(string $orderNumber)
+    {
+        try {
+            $order = Order::where('order_number', $orderNumber)
+                          ->where('status', 'pending')
+                          ->first();
+            if ($order) {
+                $order->update(['status' => 'paid', 'paid_at' => now()]);
+            }
+        } catch (\Throwable $e) {
+            Log::warning('Order confirm failed (non-fatal)', [
+                'order_number' => $orderNumber,
+                'error'        => $e->getMessage(),
+            ]);
+        }
+
+        return response()->json(['ok' => true]);
     }
 
     /**
