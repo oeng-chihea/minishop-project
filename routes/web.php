@@ -24,6 +24,7 @@ Route::prefix('admin')->group(function () {
     Route::post('/login', [AdminController::class, 'login'])->name('admin.login.post');
     Route::post('/logout',[AdminController::class, 'logout'])->name('admin.logout');
     Route::post('/orders/{id}/status', [AdminController::class, 'updateStatus'])->name('admin.orders.status');
+    Route::get('/data', [AdminController::class, 'data'])->name('admin.data');
 });
 
 // SPA fallback — serves the Vue app for any unknown path (must be last)

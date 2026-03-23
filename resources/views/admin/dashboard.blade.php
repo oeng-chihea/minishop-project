@@ -792,22 +792,108 @@
             });
         }
 
-        /* ── Auto-refresh every 30 seconds ── */
-        let countdown = 30;
+        /* ── Live sync — fetch only data, no full page reload ── */
         const updEl = document.getElementById('last-updated');
 
-        setInterval(() => {
-            countdown--;
-            if (countdown <= 0) {
-                window.location.reload();
+        function statusBadge(status) {
+            return `<span class="badge badge-${status}">${status.charAt(0).toUpperCase() + status.slice(1)}</span>`;
+        }
+
+        function actionButtons(order) {
+            if (order.status === 'pending') {
+                return `<button class="btn-status btn-mark-paid" onclick="updateStatus(${order.id},'paid',this)">Mark Paid</button>
+                        <button class="btn-status btn-mark-cancelled" onclick="updateStatus(${order.id},'cancelled',this)">Cancel</button>`;
+            } else if (order.status === 'paid') {
+                return `<button class="btn-status btn-mark-cancelled" onclick="updateStatus(${order.id},'cancelled',this)">Cancel</button>`;
             } else {
-                updEl.textContent = `Refresh in ${countdown}s`;
+                return `<button class="btn-status btn-mark-paid" onclick="updateStatus(${order.id},'paid',this)">Mark Paid</button>`;
             }
-        }, 1000);
+        }
+
+        function renderOrders(orders) {
+            const tbody = document.querySelector('tbody');
+            if (!tbody) return;
+            tbody.innerHTML = orders.map(o => `
+                <tr id="row-${o.id}">
+                    <td style="padding-left:16px">
+                        <button class="expand-btn" onclick="toggleRow(${o.id},this)" title="Show items">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="6 9 12 15 18 9"/></svg>
+                        </button>
+                    </td>
+                    <td><span class="order-num">${o.order_number}</span></td>
+                    <td>${statusBadge(o.status)}</td>
+                    <td class="col-items">
+                        <div class="items-preview">
+                            ${o.items.slice(0,2).map(i => `<span>${i.quantity}× ${i.product_name}</span>`).join('')}
+                            ${o.items.length > 2 ? `<span class="items-more">+${o.items.length - 2} more</span>` : ''}
+                        </div>
+                    </td>
+                    <td><span class="amount">$${parseFloat(o.total_amount).toFixed(2)}</span></td>
+                    <td class="col-date"><div class="date">${o.created_at}</div></td>
+                    <td class="col-action"><div class="action-row">${actionButtons(o)}</div></td>
+                </tr>
+                <tr class="detail-row" id="detail-${o.id}">
+                    <td colspan="7">
+                        <div class="detail-inner" id="detail-inner-${o.id}">
+                            <div class="detail-table">
+                                <table>
+                                    <thead><tr><th>Product</th><th>Unit Price</th><th>Qty</th><th>Subtotal</th></tr></thead>
+                                    <tbody>
+                                        ${o.items.map(i => `
+                                        <tr>
+                                            <td><span class="item-name">${i.product_image ? `<img src="${i.product_image}" class="item-img">` : ''}${i.product_name}</span></td>
+                                            <td>$${parseFloat(i.unit_price).toFixed(2)}</td>
+                                            <td>${i.quantity}</td>
+                                            <td style="color:#fff;font-weight:600">$${parseFloat(i.subtotal).toFixed(2)}</td>
+                                        </tr>`).join('')}
+                                        <tr>
+                                            <td colspan="3" style="text-align:right;font-weight:700;color:rgba(255,255,255,0.5);padding-top:12px">Total</td>
+                                            <td style="color:#fff;font-weight:800;font-size:14px;padding-top:12px">$${parseFloat(o.total_amount).toFixed(2)} ${o.currency}</td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                                ${o.paid_at ? `<div style="margin-top:10px;font-size:11.5px;color:rgba(255,255,255,0.3)">Paid at: ${o.paid_at}</div>` : ''}
+                            </div>
+                        </div>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        function syncData() {
+            const params = new URLSearchParams(window.location.search);
+            fetch(`/admin/data?${params.toString()}`)
+                .then(r => r.json())
+                .then(data => {
+                    // Update stats
+                    const statVals = document.querySelectorAll('.stat-value');
+                    statVals[0].textContent = data.stats.total;
+                    statVals[1].textContent = data.stats.paid;
+                    statVals[2].textContent = data.stats.pending;
+                    statVals[3].textContent = '$' + data.stats.revenue;
+
+                    // Update order count badge
+                    const badge = document.querySelector('.order-count');
+                    if (badge) badge.textContent = data.orders.length + ' shown';
+
+                    // Update orders table
+                    renderOrders(data.orders);
+
+                    // Update timestamp
+                    const now = new Date();
+                    updEl.textContent = `Synced ${now.getHours()}:${String(now.getMinutes()).padStart(2,'0')}`;
+                })
+                .catch(() => { updEl.textContent = 'Sync failed'; });
+        }
+
+        // Sync every 30 seconds (data only, no page reload)
+        setInterval(syncData, 30000);
+        updEl.textContent = 'Live sync on';
 
         /* ── Spin refresh icon on manual click ── */
         document.querySelector('[title="Refresh"]').addEventListener('click', () => {
             document.getElementById('refresh-icon').style.animation = 'spin 0.5s linear';
+            syncData();
         });
 
         /* ── Inline search filter (client-side) ── */
