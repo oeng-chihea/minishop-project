@@ -886,8 +886,8 @@
                 .catch(() => { updEl.textContent = 'Sync failed'; });
         }
 
-        // Sync every 30 seconds (data only, no page reload)
-        setInterval(syncData, 30000);
+        // Sync every 2 seconds (data only, no page reload)
+        setInterval(syncData, 2000);
         updEl.textContent = 'Live sync on';
 
         /* ── Spin refresh icon on manual click ── */
