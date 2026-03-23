@@ -16,8 +16,6 @@
     </header>
 
     <main class="main">
-
-        <!-- Stats -->
         <div class="stats-row">
             <div class="stat-card" style="--accent:#3b82f6">
                 <div class="stat-label">Total Orders</div>
@@ -41,7 +39,6 @@
             </div>
         </div>
 
-        <!-- Orders panel -->
         <div class="panel">
             <div class="panel-header">
                 <span class="panel-title">Orders</span>
@@ -66,7 +63,7 @@
                             placeholder="Search order #..."
                         >
                     </div>
-                    <button class="btn-refresh" title="Refresh" @click="syncData">
+                    <button class="btn-refresh" title="Refresh" :disabled="syncing" @click="syncData()">
                         <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" :class="{ spinning: syncing }">
                             <polyline points="23 4 23 10 17 10"/>
                             <path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/>
@@ -75,12 +72,10 @@
                 </div>
             </div>
 
-            <!-- Loading -->
             <div v-if="loading" class="empty-state">
                 <p style="color:rgba(255,255,255,0.3)">Loading orders...</p>
             </div>
 
-            <!-- Empty -->
             <div v-else-if="filteredOrders.length === 0" class="empty-state">
                 <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
                     <path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/>
@@ -91,7 +86,6 @@
                 <small>{{ searchQuery || activeFilter !== 'all' ? 'Try clearing the filters.' : 'Orders will appear here once customers check out.' }}</small>
             </div>
 
-            <!-- Table -->
             <table v-else>
                 <thead>
                     <tr>
@@ -106,7 +100,6 @@
                 </thead>
                 <tbody>
                     <template v-for="order in filteredOrders" :key="order.id">
-                        <!-- Main row -->
                         <tr :id="'row-' + order.id">
                             <td style="padding-left:16px">
                                 <button
@@ -127,7 +120,7 @@
                             <td class="col-items">
                                 <div class="items-preview">
                                     <span v-for="item in order.items.slice(0, 2)" :key="item.product_name">
-                                        {{ item.quantity }}× {{ item.product_name }}
+                                        {{ item.quantity }}x {{ item.product_name }}
                                     </span>
                                     <span v-if="order.items.length > 2" class="items-more">
                                         +{{ order.items.length - 2 }} more
@@ -141,18 +134,19 @@
                                     <button
                                         v-if="order.status !== 'paid'"
                                         class="btn-status btn-mark-paid"
+                                        :disabled="pendingStatusIds[order.id]"
                                         @click="updateStatus(order.id, 'paid')"
-                                    >Mark Paid</button>
+                                    >{{ pendingStatusIds[order.id] ? 'Saving...' : 'Mark Paid' }}</button>
                                     <button
                                         v-if="order.status !== 'cancelled'"
                                         class="btn-status btn-mark-cancelled"
+                                        :disabled="pendingStatusIds[order.id]"
                                         @click="updateStatus(order.id, 'cancelled')"
-                                    >Cancel</button>
+                                    >{{ pendingStatusIds[order.id] ? 'Saving...' : 'Cancel' }}</button>
                                 </div>
                             </td>
                         </tr>
 
-                        <!-- Expandable detail row -->
                         <tr class="detail-row" :id="'detail-' + order.id">
                             <td colspan="7">
                                 <div class="detail-inner" :class="{ open: openRows[order.id] }">
@@ -197,7 +191,6 @@
                 </tbody>
             </table>
         </div>
-
     </main>
 </template>
 
@@ -205,30 +198,34 @@
 import { ref, reactive, computed, onMounted, onUnmounted } from 'vue';
 
 const csrf = document.querySelector('meta[name="csrf-token"]').content;
+const POLL_INTERVAL_MS = 5000;
 
-const stats      = ref({ total: 0, paid: 0, pending: 0, revenue: '0.00' });
-const orders     = ref([]);
-const openRows   = reactive({});   // { [orderId]: boolean } — never reset by sync
+const stats = ref({ total: 0, paid: 0, pending: 0, revenue: '0.00' });
+const orders = ref([]);
+const openRows = reactive({});
+const pendingStatusIds = reactive({});
 const activeFilter = ref('all');
-const searchQuery  = ref('');
-const syncStatus   = ref('Connecting...');
-const loading      = ref(true);
-const syncing      = ref(false);
+const searchQuery = ref('');
+const syncStatus = ref('Connecting...');
+const loading = ref(true);
+const syncing = ref(false);
+let syncInFlight = false;
 
 const filters = [
-    { value: 'all',       label: 'All' },
-    { value: 'paid',      label: 'Paid' },
-    { value: 'pending',   label: 'Pending' },
+    { value: 'all', label: 'All' },
+    { value: 'paid', label: 'Paid' },
+    { value: 'pending', label: 'Pending' },
     { value: 'cancelled', label: 'Cancelled' },
 ];
 
-const ucfirst = s => s.charAt(0).toUpperCase() + s.slice(1);
+const ucfirst = (s) => s.charAt(0).toUpperCase() + s.slice(1);
 
 const filteredOrders = computed(() =>
-    orders.value.filter(o => {
-        const statusOk = activeFilter.value === 'all' || o.status === activeFilter.value;
+    orders.value.filter((order) => {
+        const statusOk = activeFilter.value === 'all' || order.status === activeFilter.value;
         const searchOk = !searchQuery.value ||
-            o.order_number.toLowerCase().includes(searchQuery.value.toLowerCase());
+            order.order_number.toLowerCase().includes(searchQuery.value.toLowerCase());
+
         return statusOk && searchOk;
     })
 );
@@ -237,45 +234,128 @@ function toggleRow(id) {
     openRows[id] = !openRows[id];
 }
 
+function formatNow() {
+    const now = new Date();
+    const day = String(now.getDate()).padStart(2, '0');
+    const month = now.toLocaleString('en-US', { month: 'short' });
+    const year = now.getFullYear();
+    const hours = String(now.getHours()).padStart(2, '0');
+    const minutes = String(now.getMinutes()).padStart(2, '0');
+
+    return `${day} ${month} ${year} ${hours}:${minutes}`;
+}
+
+function recalculateStats() {
+    const total = orders.value.length;
+    const paidOrders = orders.value.filter((order) => order.status === 'paid');
+    const pending = orders.value.filter((order) => order.status === 'pending').length;
+    const revenue = paidOrders.reduce((sum, order) => sum + Number(order.total_amount || 0), 0);
+
+    stats.value = {
+        total,
+        paid: paidOrders.length,
+        pending,
+        revenue: revenue.toFixed(2),
+    };
+}
+
+function updateOrderLocally(id, status, paidAt) {
+    const order = orders.value.find((item) => item.id === id);
+
+    if (!order) {
+        return null;
+    }
+
+    const previous = {
+        status: order.status,
+        paid_at: order.paid_at,
+    };
+
+    order.status = status;
+    order.paid_at = paidAt;
+    recalculateStats();
+
+    return previous;
+}
+
 async function updateStatus(id, status) {
+    if (pendingStatusIds[id]) {
+        return;
+    }
+
+    pendingStatusIds[id] = true;
+    const previousState = updateOrderLocally(id, status, status === 'paid' ? formatNow() : null);
+
     try {
-        const res  = await fetch(`/admin/orders/${id}/status`, {
-            method:  'POST',
+        const res = await fetch(`/admin/orders/${id}/status`, {
+            method: 'POST',
             headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': csrf },
-            body:    JSON.stringify({ status }),
+            body: JSON.stringify({ status }),
         });
+
+        if (!res.ok) {
+            throw new Error('Status update failed');
+        }
+
         const data = await res.json();
+
         if (data.ok) {
-            await syncData();
+            updateOrderLocally(id, data.status, data.paid_at);
+            void syncData(true);
         }
     } catch {
+        if (previousState) {
+            updateOrderLocally(id, previousState.status, previousState.paid_at);
+        }
+
         alert('Failed to update order status. Please try again.');
+    } finally {
+        delete pendingStatusIds[id];
     }
 }
 
-async function syncData() {
+async function syncData(silent = false) {
+    if (syncInFlight) {
+        return;
+    }
+
+    syncInFlight = true;
     syncing.value = true;
+
     try {
-        const res  = await fetch('/admin/data');
+        const res = await fetch('/admin/data', {
+            headers: { Accept: 'application/json' },
+        });
         const data = await res.json();
-        if (data.error) return;
-        stats.value  = data.stats;
+
+        if (data.error) {
+            return;
+        }
+
+        stats.value = data.stats;
         orders.value = data.orders;
-        const now = new Date();
-        syncStatus.value = `Synced ${now.getHours()}:${String(now.getMinutes()).padStart(2, '0')}`;
+
+        if (!silent) {
+            const now = new Date();
+            syncStatus.value = `Synced ${now.getHours()}:${String(now.getMinutes()).padStart(2, '0')}`;
+        }
     } catch {
         syncStatus.value = 'Sync failed';
     } finally {
-        loading.value  = false;
-        syncing.value  = false;
+        syncInFlight = false;
+        loading.value = false;
+        syncing.value = false;
     }
 }
 
 let syncInterval;
 onMounted(async () => {
     await syncData();
-    syncInterval = setInterval(syncData, 2000);
+    syncInterval = setInterval(() => {
+        void syncData(true);
+    }, POLL_INTERVAL_MS);
 });
+
 onUnmounted(() => clearInterval(syncInterval));
 </script>
 
@@ -291,7 +371,6 @@ body {
     line-height: 1.5;
 }
 
-/* ── Topbar ── */
 .topbar {
     position: sticky;
     top: 0;
@@ -321,7 +400,7 @@ body {
 }
 @keyframes pulse {
     0%, 100% { opacity: 1; transform: scale(1); }
-    50%       { opacity: 0.4; transform: scale(0.7); }
+    50% { opacity: 0.4; transform: scale(0.7); }
 }
 
 .btn-logout {
@@ -336,10 +415,8 @@ body {
 }
 .btn-logout:hover { background: rgba(239,68,68,0.12); border-color: rgba(239,68,68,0.3); color: #fca5a5; }
 
-/* ── Main ── */
 .main { max-width: 1320px; margin: 0 auto; padding: 32px 28px 60px; }
 
-/* ── Stats ── */
 .stats-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; margin-bottom: 32px; }
 .stat-card {
     background: #0d1526;
@@ -355,9 +432,8 @@ body {
 }
 .stat-label { font-size: 10.5px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: rgba(255,255,255,0.3); margin-bottom: 10px; }
 .stat-value { font-size: 32px; font-weight: 800; letter-spacing: -0.03em; color: #fff; line-height: 1; }
-.stat-sub   { font-size: 11px; color: rgba(255,255,255,0.25); margin-top: 6px; }
+.stat-sub { font-size: 11px; color: rgba(255,255,255,0.25); margin-top: 6px; }
 
-/* ── Panel ── */
 .panel { background: #0d1526; border: 1px solid rgba(255,255,255,0.07); border-radius: 10px; overflow: hidden; }
 .panel-header {
     display: flex; align-items: center; gap: 16px;
@@ -365,15 +441,14 @@ body {
     border-bottom: 1px solid rgba(255,255,255,0.07);
     flex-wrap: wrap;
 }
-.panel-title  { font-size: 14px; font-weight: 700; color: #fff; letter-spacing: -0.01em; }
-.order-count  {
+.panel-title { font-size: 14px; font-weight: 700; color: #fff; letter-spacing: -0.01em; }
+.order-count {
     font-size: 11px;
     background: rgba(59,130,246,0.15); border: 1px solid rgba(59,130,246,0.25);
     color: #93c5fd; border-radius: 20px; padding: 2px 10px; font-weight: 600;
 }
 .panel-actions { margin-left: auto; display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
 
-/* filter pills */
 .filter-pills { display: flex; gap: 4px; }
 .pill {
     background: transparent;
@@ -388,7 +463,6 @@ body {
 .pill:hover, .pill.active { background: rgba(59,130,246,0.15); border-color: rgba(59,130,246,0.4); color: #93c5fd; }
 .pill.active { pointer-events: none; }
 
-/* search */
 .search-wrap { position: relative; }
 .search-wrap svg { position: absolute; left: 10px; top: 50%; transform: translateY(-50%); color: rgba(255,255,255,0.25); pointer-events: none; }
 .search-input {
@@ -408,14 +482,14 @@ body {
     color: rgba(255,255,255,0.3);
     cursor: pointer; padding: 6px; border-radius: 5px;
     display: flex; align-items: center;
-    transition: color 0.2s;
+    transition: color 0.2s, opacity 0.2s;
 }
 .btn-refresh:hover { color: #fff; }
+.btn-refresh:disabled { opacity: 0.4; cursor: not-allowed; }
 .btn-refresh svg.spinning { animation: spin 0.6s linear infinite; }
 
 @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
 
-/* ── Table ── */
 table { width: 100%; border-collapse: collapse; }
 thead th {
     padding: 11px 16px;
@@ -432,19 +506,18 @@ td { padding: 14px 16px; vertical-align: middle; }
 
 .order-num { font-family: 'Courier New', monospace; font-size: 13px; font-weight: 700; color: #fff; letter-spacing: 0.03em; }
 
-/* badges */
 .badge {
     display: inline-flex; align-items: center; gap: 5px;
     padding: 3px 10px; border-radius: 20px;
     font-size: 11px; font-weight: 700; letter-spacing: 0.04em; text-transform: uppercase;
 }
 .badge::before { content: ''; display: block; width: 5px; height: 5px; border-radius: 50%; background: currentColor; }
-.badge-paid      { background: rgba(34,197,94,0.12);  color: #4ade80; border: 1px solid rgba(34,197,94,0.25); }
-.badge-pending   { background: rgba(245,158,11,0.12); color: #fbbf24; border: 1px solid rgba(245,158,11,0.25); }
-.badge-cancelled { background: rgba(239,68,68,0.12);  color: #f87171; border: 1px solid rgba(239,68,68,0.25); }
+.badge-paid { background: rgba(34,197,94,0.12); color: #4ade80; border: 1px solid rgba(34,197,94,0.25); }
+.badge-pending { background: rgba(245,158,11,0.12); color: #fbbf24; border: 1px solid rgba(245,158,11,0.25); }
+.badge-cancelled { background: rgba(239,68,68,0.12); color: #f87171; border: 1px solid rgba(239,68,68,0.25); }
 
 .amount { font-weight: 700; color: #fff; font-size: 14px; }
-.date   { color: rgba(255,255,255,0.38); font-size: 12.5px; white-space: nowrap; }
+.date { color: rgba(255,255,255,0.38); font-size: 12.5px; white-space: nowrap; }
 
 .items-preview { display: flex; flex-direction: column; gap: 3px; font-size: 12px; color: rgba(255,255,255,0.5); max-width: 200px; }
 .items-preview span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
@@ -457,13 +530,12 @@ td { padding: 14px 16px; vertical-align: middle; }
     cursor: pointer; font-family: inherit; border: 1px solid transparent;
     transition: background 0.2s, border-color 0.2s, color 0.2s, opacity 0.2s;
 }
-.btn-mark-paid      { background: rgba(34,197,94,0.1);  border-color: rgba(34,197,94,0.25);  color: #4ade80; }
+.btn-mark-paid { background: rgba(34,197,94,0.1); border-color: rgba(34,197,94,0.25); color: #4ade80; }
 .btn-mark-paid:hover { background: rgba(34,197,94,0.2); }
-.btn-mark-cancelled      { background: rgba(239,68,68,0.1); border-color: rgba(239,68,68,0.2); color: #f87171; }
+.btn-mark-cancelled { background: rgba(239,68,68,0.1); border-color: rgba(239,68,68,0.2); color: #f87171; }
 .btn-mark-cancelled:hover { background: rgba(239,68,68,0.2); }
 .btn-status:disabled { opacity: 0.35; cursor: not-allowed; }
 
-/* ── Expand row ── */
 .expand-btn {
     background: none; border: none; color: rgba(255,255,255,0.3);
     cursor: pointer; padding: 4px 6px; border-radius: 4px;
@@ -484,16 +556,14 @@ td { padding: 14px 16px; vertical-align: middle; }
 .detail-table td { padding: 9px 10px; font-size: 12.5px; color: rgba(255,255,255,0.6); border-bottom: 1px solid rgba(255,255,255,0.03); }
 .detail-table tr:last-child td { border-bottom: none; }
 
-.item-img  { width: 36px; height: 36px; object-fit: cover; border-radius: 4px; background: rgba(255,255,255,0.05); vertical-align: middle; margin-right: 8px; }
+.item-img { width: 36px; height: 36px; object-fit: cover; border-radius: 4px; background: rgba(255,255,255,0.05); vertical-align: middle; margin-right: 8px; }
 .item-name { display: flex; align-items: center; color: rgba(255,255,255,0.8); font-weight: 600; }
 
-/* ── Empty state ── */
 .empty-state { text-align: center; padding: 72px 24px; color: rgba(255,255,255,0.22); }
 .empty-state svg { margin-bottom: 16px; opacity: 0.3; }
-.empty-state p   { font-size: 15px; font-weight: 500; }
+.empty-state p { font-size: 15px; font-weight: 500; }
 .empty-state small { font-size: 12px; display: block; margin-top: 6px; opacity: 0.6; }
 
-/* ── Responsive ── */
 @media (max-width: 900px) {
     .stats-row { grid-template-columns: repeat(2, 1fr); }
     .col-items, .th-items { display: none; }

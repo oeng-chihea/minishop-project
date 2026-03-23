@@ -141,10 +141,14 @@ class AdminController extends Controller
         $request->validate(['status' => 'required|in:pending,paid,cancelled']);
 
         $order = Order::findOrFail($id);
-        $order->status  = $request->status;
-        $order->paid_at = $request->status === 'paid' ? now() : $order->paid_at;
+        $order->status = $request->status;
+        $order->paid_at = $request->status === 'paid' ? now() : null;
         $order->save();
 
-        return response()->json(['ok' => true, 'status' => $order->status]);
+        return response()->json([
+            'ok'      => true,
+            'status'  => $order->status,
+            'paid_at' => $order->paid_at ? $order->paid_at->format('d M Y H:i') : null,
+        ]);
     }
 }
