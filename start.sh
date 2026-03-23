@@ -24,5 +24,5 @@ else
 fi
 
 echo "Starting web server..."
-# Use Laravel's router script so all application routes resolve correctly.
-exec php -S "${HOST}:${PORT}" server.php
+# Serve static assets from public/ and route application requests through Laravel.
+exec php -S "${HOST}:${PORT}" -t public server.php
