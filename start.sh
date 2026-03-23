@@ -1,7 +1,14 @@
 #!/bin/sh
 set -e
 
+APP_DIR="$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)"
+cd "$APP_DIR"
+
+PORT="${PORT:-10000}"
+HOST="${HOST:-0.0.0.0}"
+
 echo "Starting Laravel service..."
+echo "Binding web server to ${HOST}:${PORT}"
 
 if php artisan migrate --force --no-interaction; then
   echo "Migrations completed."
@@ -17,4 +24,5 @@ else
 fi
 
 echo "Starting web server..."
-exec php -S 0.0.0.0:${PORT:-10000} -t public
+# Use Laravel's router script so all application routes resolve correctly.
+exec php -S "${HOST}:${PORT}" server.php
