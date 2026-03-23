@@ -861,6 +861,12 @@
         }
 
         function syncData() {
+            // Save which rows are currently expanded before re-rendering
+            const openRows = new Set();
+            document.querySelectorAll('.detail-inner.open').forEach(el => {
+                openRows.add(el.id.replace('detail-inner-', ''));
+            });
+
             const params = new URLSearchParams(window.location.search);
             fetch(`/admin/data?${params.toString()}`)
                 .then(r => r.json())
@@ -878,6 +884,14 @@
 
                     // Update orders table
                     renderOrders(data.orders);
+
+                    // Restore previously expanded rows
+                    openRows.forEach(id => {
+                        const inner = document.getElementById('detail-inner-' + id);
+                        const btn = document.querySelector('#row-' + id + ' .expand-btn');
+                        if (inner) inner.classList.add('open');
+                        if (btn) btn.classList.add('open');
+                    });
 
                     // Update timestamp
                     const now = new Date();
