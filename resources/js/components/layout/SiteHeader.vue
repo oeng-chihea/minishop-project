@@ -195,4 +195,84 @@ onBeforeUnmount(() => {
         font-size: 28px;
     }
 }
+
+@media (max-width: 980px) {
+    .container {
+        padding: 0 18px;
+    }
+
+    .header-inner {
+        min-height: 64px;
+    }
+
+    .left-nav {
+        gap: 10px;
+    }
+
+    .left-nav a {
+        font-size: 12px;
+    }
+}
+
+@media (max-width: 720px) {
+    .header-inner {
+        min-height: auto;
+        flex-direction: column;
+        align-items: stretch;
+        gap: 10px;
+        padding: 12px 0 10px;
+    }
+
+    .left-nav {
+        display: flex;
+        width: 100%;
+        order: 2;
+        justify-content: flex-start;
+        gap: 8px;
+        overflow-x: auto;
+        padding-bottom: 2px;
+        scrollbar-width: none;
+    }
+
+    .left-nav::-webkit-scrollbar {
+        display: none;
+    }
+
+    .left-nav a {
+        flex: 0 0 auto;
+        padding: 8px 12px;
+        border: 1px solid rgba(8, 13, 22, 0.08);
+        border-radius: 999px;
+        background: rgba(8, 13, 22, 0.04);
+        white-space: nowrap;
+    }
+
+    .brand {
+        position: static;
+        transform: none;
+        width: 100%;
+        justify-content: center;
+        order: 1;
+    }
+}
+
+@media (max-width: 420px) {
+    .container {
+        padding: 0 14px;
+    }
+
+    .header-inner {
+        gap: 8px;
+    }
+
+    .brand-text,
+    .brand-cursor {
+        font-size: 24px;
+    }
+
+    .left-nav a {
+        font-size: 11px;
+        padding: 7px 10px;
+    }
+}
 </style>

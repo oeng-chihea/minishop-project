@@ -209,7 +209,7 @@ onBeforeUnmount(() => {
     position: absolute;
     right: 0;
     top: 0;
-    width: min(420px, 92vw);
+    width: min(420px, 100vw);
     height: 100%;
     display: flex;
     flex-direction: column;
@@ -483,7 +483,7 @@ h4 {
 
 /* ─── Footer ───────────────────────────────────── */
 .panel-footer {
-    padding: 18px 22px 24px;
+    padding: 18px 22px max(24px, calc(24px + env(safe-area-inset-bottom, 0px)));
     border-top: 1px solid rgba(255, 255, 255, 0.07);
     flex-shrink: 0;
 }
@@ -610,9 +610,13 @@ h4 {
 
 /* Narrow panel (375px phone → panel is ~345px → list area ~301px) */
 @media (max-width: 430px) {
+    .panel {
+        width: 100vw;
+    }
+
     .panel-head   { padding: 16px 14px; }
     .cart-list    { padding: 0 14px; }
-    .panel-footer { padding: 14px 14px 22px; }
+    .panel-footer { padding: 14px 14px max(22px, calc(22px + env(safe-area-inset-bottom, 0px))); }
 
     .cart-item    { gap: 8px; }
 

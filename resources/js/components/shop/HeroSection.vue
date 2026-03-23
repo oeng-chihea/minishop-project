@@ -219,27 +219,51 @@ onBeforeUnmount(() => observer?.disconnect());
     }
 }
 
+@media (max-width: 860px) {
+    .hero-banner {
+        min-height: auto;
+        padding: 104px 24px 52px;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+        gap: 22px;
+        background-position: center top;
+    }
+
+    .menu-card,
+    .hero-content {
+        position: static;
+    }
+
+    .menu-card {
+        width: min(100%, 300px);
+    }
+
+    .hero-content {
+        max-width: min(100%, 520px);
+        margin-left: auto;
+    }
+
+    .hero-content h1 {
+        font-size: 46px;
+    }
+}
+
 /* Mobile */
 @media (max-width: 640px) {
     .hero-banner {
         min-height: 100dvh; /* use dvh on mobile for better viewport handling */
         background-attachment: scroll;
+        padding: 88px 20px 40px;
     }
 
     .menu-card {
-        position: absolute;
-        top: 60px;
-        left: 20px;
-        right: 20px;
-        width: auto;
         padding: 18px 20px;
     }
 
     .hero-content {
-        left: 20px;
-        right: 20px;
-        bottom: 60px;
         max-width: 100%;
+        margin-left: 0;
     }
 
     .hero-content h1 {
@@ -254,13 +278,14 @@ onBeforeUnmount(() => observer?.disconnect());
         padding: 12px 20px;
         font-size: 13px;
     }
+
+    .hero-actions .btn {
+        flex: 1 1 180px;
+    }
 }
 
 @media (max-width: 420px) {
     .menu-card {
-        top: 52px;
-        left: 14px;
-        right: 14px;
         padding: 14px 16px;
     }
 
@@ -269,9 +294,7 @@ onBeforeUnmount(() => observer?.disconnect());
     .menu-card a { font-size: 15px; margin: 8px 0; }
 
     .hero-content {
-        left: 14px;
-        right: 14px;
-        bottom: 44px;
+        max-width: 100%;
     }
 
     .hero-content h1 { font-size: 30px; }

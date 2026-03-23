@@ -344,9 +344,13 @@ onBeforeUnmount(() => observer?.disconnect());
 @media (max-width: 540px) {
     .lb-root { padding: 64px 0 72px; }
     .lb-grid {
-        grid-template-columns: 1fr 1fr;
-        grid-template-rows: 180px 180px 180px;
+        grid-template-columns: 1fr;
+        grid-template-rows: repeat(5, 220px);
         gap: 8px;
+    }
+    .lb-t0, .lb-t1, .lb-t2, .lb-t3, .lb-t4 {
+        grid-column: 1;
+        grid-row: auto;
     }
     .lb-head { margin-bottom: 36px; }
 }
@@ -354,11 +358,7 @@ onBeforeUnmount(() => observer?.disconnect());
 @media (max-width: 380px) {
     .lb-grid {
         grid-template-columns: 1fr;
-        grid-template-rows: repeat(5, 220px);
-    }
-    .lb-t0, .lb-t1, .lb-t2, .lb-t3, .lb-t4 {
-        grid-column: 1;
-        grid-row: auto;
+        grid-template-rows: repeat(5, 200px);
     }
 }
 </style>

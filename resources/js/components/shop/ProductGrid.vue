@@ -61,26 +61,40 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted, onBeforeUnmount } from 'vue';
+import { ref, computed, onMounted, onBeforeUnmount, watch } from 'vue';
 
 const props = defineProps({
-    products: { type: Array, required: true }
+    products: { type: Array, required: true },
+    selectedCategory: {
+        type: String,
+        default: 'everyday'
+    }
 });
 
-const emit = defineEmits(['add']);
+const emit = defineEmits(['add', 'category-change']);
 
-const activeTab  = ref('everyday');
+const allowedTabs = ['everyday', 'travel', 'activity'];
+const activeTab  = ref(allowedTabs.includes(props.selectedCategory) ? props.selectedCategory : 'everyday');
 const sectionRef = ref(null);
 const gridVisible = ref(false);
 const addedId    = ref(null);   // tracks which product just got added
 let gridObserver = null;
 let addedTimer   = null;
 
-const setTab = (tab) => { activeTab.value = tab; };
+const setTab = (tab) => {
+    activeTab.value = tab;
+    emit('category-change', tab);
+};
 
 const filteredProducts = computed(() =>
     props.products.filter(p => p.category === activeTab.value)
 );
+
+watch(() => props.selectedCategory, (category) => {
+    if (allowedTabs.includes(category) && category !== activeTab.value) {
+        activeTab.value = category;
+    }
+});
 
 // ── Flying image animation ──────────────────────────────────────────
 function flyToCart(event, product) {
@@ -207,6 +221,7 @@ onBeforeUnmount(() => {
     background: #080d16;
     border: none;
     padding: 72px 30px 80px;
+    scroll-margin-top: 96px;
 }
 
 /* ─── Header ──────────────────────────────────── */
@@ -447,17 +462,46 @@ button.btn-added {
     .product-grid {
         grid-template-columns: 1fr;
     }
+
+    .card-header {
+        flex-wrap: wrap;
+        gap: 8px;
+    }
+
+    .actions {
+        align-items: stretch;
+    }
+
+    .actions button {
+        min-width: 0;
+    }
 }
 
 @media (max-width: 480px) {
     .tabs {
         max-width: 100%;
+        overflow-x: auto;
+        scrollbar-width: none;
+    }
+
+    .tabs::-webkit-scrollbar {
+        display: none;
     }
 
     .tabs button {
+        min-width: 110px;
         font-size: 10px;
         letter-spacing: 0.07em;
         padding: 11px 4px;
+    }
+
+    .actions {
+        flex-wrap: wrap;
+    }
+
+    .actions strong,
+    .actions button {
+        width: 100%;
     }
 }
 

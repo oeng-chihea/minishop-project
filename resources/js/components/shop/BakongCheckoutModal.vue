@@ -198,8 +198,10 @@ function onOverlayClick() {
     border-radius: 12px;
     width: 100%;
     max-width: 380px;
+    max-height: min(92vh, 760px);
     box-shadow: 0 24px 64px rgba(0, 0, 0, 0.6);
     overflow: hidden;
+    overflow-y: auto;
 }
 
 /* ── Header ──────────────────────────────────────── */
@@ -475,5 +477,11 @@ function onOverlayClick() {
     .bk-instruction  { font-size: 12px; max-width: 100%; }
     .bk-loading, .bk-error-state { padding: 32px 16px; }
     .bk-retry-btn { padding: 9px 20px; font-size: 12px; }
+}
+
+@media (max-height: 720px) {
+    .bk-overlay {
+        align-items: flex-end;
+    }
 }
 </style>

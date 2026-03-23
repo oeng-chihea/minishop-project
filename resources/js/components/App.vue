@@ -3,17 +3,35 @@
         <SiteHeader />
         <HeroSection />
         <TrendingBanner />
+        <FeaturedDropSection
+            :products="products"
+            @add="addToCart"
+            @explore-category="focusCategory"
+        />
         <CollectionsSection id="collections" />
         <MaterialsSection />
         <ValueStrip id="values" />
+        <LifestyleSection @explore-category="focusCategory" />
 
-        <ProductGrid :products="products" @add="addToCart" />
+        <ProductGrid
+            :products="products"
+            :selected-category="activeCategory"
+            @add="addToCart"
+            @category-change="activeCategory = $event"
+        />
+
+        <BestSellersSection
+            :products="products"
+            @add="addToCart"
+            @explore-category="focusCategory"
+        />
 
         <BrandStorySection />
 
         <WhySection id="why-us" />
 
         <TestimonialsSection />
+        <CustomerWallSection :products="products" @add="addToCart" />
         <LookbookSection />
         <FAQSection />
 
@@ -78,9 +96,12 @@ import { computed, reactive, ref } from 'vue';
 import SiteHeader from './layout/SiteHeader.vue';
 import HeroSection from './shop/HeroSection.vue';
 import TrendingBanner from './shop/TrendingBanner.vue';
+import FeaturedDropSection from './shop/FeaturedDropSection.vue';
 import CollectionsSection from './shop/CollectionsSection.vue';
+import LifestyleSection from './shop/LifestyleSection.vue';
 import ValueStrip from './shop/ValueStrip.vue';
 import ProductGrid from './shop/ProductGrid.vue';
+import BestSellersSection from './shop/BestSellersSection.vue';
 import CartPanel from './shop/CartPanel.vue';
 import BakongCheckoutModal from './shop/BakongCheckoutModal.vue';
 import OrderConfirmationModal from './shop/OrderConfirmationModal.vue';
@@ -88,6 +109,7 @@ import MaterialsSection from './shop/MaterialsSection.vue';
 import BrandStorySection from './shop/BrandStorySection.vue';
 import LookbookSection from './shop/LookbookSection.vue';
 import TestimonialsSection from './shop/TestimonialsSection.vue';
+import CustomerWallSection from './shop/CustomerWallSection.vue';
 import FAQSection from './shop/FAQSection.vue';
 import NewsletterSection from './shop/NewsletterSection.vue';
 import WhySection from './shop/WhySection.vue';
@@ -171,10 +193,20 @@ const products = ref([
 ]);
 
 const cart = ref([]);
+const activeCategory = ref('everyday');
 const cartSlideTrigger = ref(0);
 const isCartOpen = ref(false);
 const checkoutLoading = ref(false);
 const checkoutError  = ref('');
+
+const scrollToShop = () => {
+    document.getElementById('shop')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+};
+
+const focusCategory = (category) => {
+    activeCategory.value = category;
+    scrollToShop();
+};
 
 const addToCart = (product) => {
     cartSlideTrigger.value += 1;

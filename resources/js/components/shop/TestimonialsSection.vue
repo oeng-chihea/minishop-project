@@ -323,4 +323,10 @@ h2 {
     .chip           { padding: 9px 16px; }
     .chip-text      { font-size: 12px; }
 }
+
+@media (max-width: 380px) {
+    .stats-grid {
+        grid-template-columns: 1fr;
+    }
+}
 </style>

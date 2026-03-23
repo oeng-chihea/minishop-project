@@ -359,4 +359,10 @@ const copyOrderNumber = async () => {
     .oc-order-number { font-size: 15px; }
     .oc-total-value  { font-size: 16px; }
 }
+
+@media (max-height: 720px) {
+    .oc-overlay {
+        align-items: flex-end;
+    }
+}
 </style>
